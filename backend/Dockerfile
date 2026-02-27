@@ -1,25 +1,21 @@
 FROM php:8.2-cli
 
-# Cài extension cần cho Laravel + MySQL
-RUN docker-php-ext-install pdo pdo_mysql
+# System packages cần cho composer + extensions
+RUN apt-get update && apt-get install -y \
+    git unzip libzip-dev libonig-dev libicu-dev \
+    && docker-php-ext-install pdo pdo_mysql mbstring intl zip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Cài Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Thư mục làm việc
 WORKDIR /app
-
-# Copy source code
 COPY . .
 
-# Cài dependencies Laravel
-RUN composer install --no-dev --optimize-autoloader
+# Cài dependency Laravel
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Quyền ghi cho storage + cache
 RUN chmod -R 775 storage bootstrap/cache || true
 
-# Port Render sử dụng
 EXPOSE 10000
-
-# Start Laravel
 CMD php artisan serve --host=0.0.0.0 --port=10000
