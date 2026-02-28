@@ -17,17 +17,21 @@ RUN composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction \
-    --prefer-dist \
-    --no-scripts
+    --prefer-dist
 
 COPY . .
 
-RUN cp .env.example .env || true
+# ❌ KHÔNG tạo .env trong container
+# RUN cp .env.example .env
 
-RUN php artisan package:discover --ansi || true
+# Clear cache để Laravel đọc ENV runtime
+RUN php artisan config:clear || true
+RUN php artisan cache:clear || true
+RUN php artisan route:clear || true
+RUN php artisan view:clear || true
 
 RUN chmod -R 775 storage bootstrap/cache || true
 
-EXPOSE 8000
+EXPOSE 10000
 
-CMD php artisan serve --host=0.0.0.0 --port=8000
+CMD php artisan serve --host=0.0.0.0 --port=10000
