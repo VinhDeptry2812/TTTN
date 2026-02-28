@@ -20,7 +20,7 @@ RUN composer install \
     --prefer-dist
 
 RUN php artisan config:clear || true
-RUN php artisan cache:clear || true
+RUN php artisan cache:clear || true 
 RUN php artisan route:clear || true
 
 RUN chmod -R 775 storage bootstrap/cache || true
