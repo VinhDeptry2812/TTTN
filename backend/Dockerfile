@@ -11,7 +11,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-COPY composer.json composer.lock ./
+COPY . .
 
 RUN composer install \
     --no-dev \
@@ -19,19 +19,15 @@ RUN composer install \
     --no-interaction \
     --prefer-dist
 
-COPY . .
-
-# ❌ KHÔNG tạo .env trong container
-# RUN cp .env.example .env
-
-# Clear cache để Laravel đọc ENV runtime
 RUN php artisan config:clear || true
 RUN php artisan cache:clear || true
-RUN php artisan route:clear || true
-RUN php artisan view:clear || true
 
 RUN chmod -R 775 storage bootstrap/cache || true
 
+# Copy entrypoint
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 10000
 
-CMD php artisan serve --host=0.0.0.0 --port=10000
+CMD ["/entrypoint.sh"]
