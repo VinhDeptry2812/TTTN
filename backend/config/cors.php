@@ -21,6 +21,7 @@ return [
 
     'allowed_origins' => [
         'https://tttn-2.onrender.com',
+        'http://localhost:3000',
     ],
 
     'allowed_origins_patterns' => [],
