@@ -20,8 +20,7 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'http://localhost:3000',
-        'http://localhost:5173'
+        'https://tttn-2.onrender.com',
     ],
 
     'allowed_origins_patterns' => [],
