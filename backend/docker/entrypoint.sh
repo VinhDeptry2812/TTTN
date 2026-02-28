@@ -1,14 +1,15 @@
+
 #!/bin/sh
 
 echo "⏳ Waiting for database..."
 sleep 5
 
 echo "🔧 Running migrations..."
-php artisan migrate --force
+php artisan migrate --force || true
 
 echo "🌱 Running seeders..."
 if [ "$RUN_SEED" = "true" ]; then
-    php artisan db:seed --force
+    php artisan db:seed --force || true
 fi
 
 php artisan config:clear
@@ -17,5 +18,7 @@ php artisan route:clear
 php artisan view:clear
 php artisan optimize:clear
 
-echo "🚀 Starting server..."
-php artisan serve --host=0.0.0.0 --port=10000
+echo "🚀 Starting server on port ${PORT:-10000} ..."
+php artisan serve \
+  --host=0.0.0.0 \
+  --port=${PORT:-10000}
