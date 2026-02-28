@@ -22,7 +22,7 @@ return [
     'allowed_origins' => [
         'https://tttn-2.onrender.com',
     ],
-
+    
     'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
