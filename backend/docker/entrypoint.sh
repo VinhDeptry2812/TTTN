@@ -10,18 +10,25 @@ if [ "$RUN_SEED" = "true" ]; then
     php artisan db:seed --force || true
 fi
 
+echo "🧹 Clearing caches..."
 php artisan config:clear || true
 php artisan cache:clear || true
 php artisan route:clear || true
 php artisan view:clear || true
 
-# Generate swagger TRƯỚC khi cache
+echo "📦 Publishing Swagger assets..."
+php artisan vendor:publish \
+  --provider="L5Swagger\L5SwaggerServiceProvider" \
+  --tag=public \
+  --force || true
+
+echo "📄 Generating Swagger docs..."
 php artisan l5-swagger:generate || true
 
-# Cache SAU khi generate swagger
+echo "⚡ Caching config + views..."
 php artisan config:cache || true
 php artisan view:cache || true
 
-echo "🚀 Starting Nginx + PHP-FPM..."
+echo "🚀 Starting services..."
 php-fpm -D
 exec nginx -g "daemon off;"
