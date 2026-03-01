@@ -1,7 +1,7 @@
-FROM php:8.4-cli
+FROM php:8.4-fpm
 
 RUN apt-get update && apt-get install -y \
-    git unzip curl \
+    git unzip curl nginx \
     libpng-dev libjpeg-dev libfreetype6-dev \
     libonig-dev libzip-dev zip
 
@@ -19,10 +19,9 @@ RUN composer install \
     --no-interaction \
     --prefer-dist
 
-# ← Bỏ hết các lệnh artisan ở đây vì chưa có .env lúc build
-# Chỉ fix permission thôi
-RUN chmod -R 775 storage bootstrap/cache || true
+RUN chmod -R 775 storage bootstrap/cache
 
+COPY docker/nginx.conf /etc/nginx/sites-available/default
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
