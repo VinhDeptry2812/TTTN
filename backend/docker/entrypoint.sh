@@ -13,7 +13,7 @@ php artisan route:clear || true
 php artisan view:clear || true
 
 echo "📄 Generating Swagger docs..."
-php artisan l5-swagger:generate --force || true
+php artisan l5-swagger:generate || true
 
 echo "⚡ Caching config + views..."
 php artisan config:cache || true
