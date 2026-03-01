@@ -115,6 +115,9 @@
                 "responses": {
                     "200": {
                         "description": "Đăng xuất thành công"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 }
             }
