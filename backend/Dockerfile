@@ -1,4 +1,4 @@
-FROM php:8.4-cli
+FROM php:8.4-apache
 
 RUN apt-get update && apt-get install -y \
     git unzip curl \
@@ -9,9 +9,11 @@ RUN docker-php-ext-install pdo pdo_mysql mbstring bcmath gd zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+WORKDIR /var/www/html
 
 COPY . .
+
+COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
 RUN composer install \
     --no-dev \
@@ -19,18 +21,13 @@ RUN composer install \
     --no-interaction \
     --prefer-dist
 
-RUN php artisan config:clear || true
-RUN php artisan cache:clear || true 
-RUN php artisan route:clear || true
-RUN php artisan optimize:clear || true
+RUN php artisan optimize:clear
 
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 775 storage bootstrap/cache
 
-RUN chmod -R 775 storage bootstrap/cache || true
-
-# Copy entrypoint
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN a2enmod rewrite
 
 EXPOSE 10000
 
-CMD ["/entrypoint.sh"]
+CMD ["apache2-foreground"]
