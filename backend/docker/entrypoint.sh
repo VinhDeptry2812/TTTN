@@ -9,6 +9,14 @@ php artisan migrate --force || true
 echo "📄 Publishing Swagger assets..."
 php artisan vendor:publish --provider="L5Swagger\L5SwaggerServiceProvider" --force || true
 
+# Copy swagger-ui dist files into public directory so edge/nginx can serve them
+# with correct Content-Type instead of relying on the Laravel route.
+echo "📂 Copying Swagger UI distribution into public/docs/asset..."
+rm -rf public/docs/asset || true
+mkdir -p public/docs/asset
+cp -R vendor/swagger-api/swagger-ui/dist/* public/docs/asset/ || true
+
+
 echo "📄 Generating Swagger docs..."
 php artisan l5-swagger:generate || true
 
