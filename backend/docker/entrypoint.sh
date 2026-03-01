@@ -11,17 +11,16 @@ if [ "$RUN_SEED" = "true" ]; then
     php artisan db:seed --force || true
 fi
 
-# Clear tất cả cache cũ
+echo "🧹 Clearing old cache..."
 php artisan config:clear
 php artisan cache:clear
 php artisan route:clear
 php artisan view:clear
-php artisan optimize:clear
 
-# ← Thêm dòng này: cache lại config mới từ cors.php
-php artisan config:cache
+echo "⚡ Caching config mới..."
+php artisan config:cache   # ← quan trọng, load cors.php mới vào đây
 
-echo "🚀 Starting server on port ${PORT:-10000} ..."
+echo "🚀 Starting server on port ${PORT:-10000}..."
 php artisan serve \
   --host=0.0.0.0 \
   --port=${PORT:-10000}

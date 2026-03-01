@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev libjpeg-dev libfreetype6-dev \
     libonig-dev libzip-dev zip
 
-RUN docker-php-ext-install pdo pdo_mysql mbstring bcmath gd zip
+RUN docker-php-ext-install pdo pdo_mysql mbstring bcmath gd zip pcntl
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -19,15 +19,10 @@ RUN composer install \
     --no-interaction \
     --prefer-dist
 
-RUN php artisan config:clear || true
-RUN php artisan cache:clear || true 
-RUN php artisan route:clear || true
-RUN php artisan optimize:clear || true
-
-
+# ← Bỏ hết các lệnh artisan ở đây vì chưa có .env lúc build
+# Chỉ fix permission thôi
 RUN chmod -R 775 storage bootstrap/cache || true
 
-# Copy entrypoint
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
