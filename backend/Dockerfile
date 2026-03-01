@@ -19,10 +19,6 @@ RUN composer install \
     --no-interaction \
     --prefer-dist
 
-# ← THÊM ĐOẠN NÀY
-RUN mkdir -p public/vendor/l5-swagger && \
-    cp -r vendor/darkaonline/l5-swagger/public/. public/vendor/l5-swagger/
-
 RUN chmod -R 775 storage bootstrap/cache
 
 COPY docker/nginx.conf /etc/nginx/sites-available/default
