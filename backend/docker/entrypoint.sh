@@ -6,10 +6,6 @@ sleep 5
 echo "🔧 Running migrations..."
 php artisan migrate --force || true
 
-if [ "$RUN_SEED" = "true" ]; then
-    php artisan db:seed --force || true
-fi
-
 echo "🧹 Clearing caches..."
 php artisan config:clear || true
 php artisan cache:clear || true
@@ -17,7 +13,10 @@ php artisan route:clear || true
 php artisan view:clear || true
 
 echo "📦 Publishing Swagger assets..."
-php artisan l5-swagger:publish-assets || true
+php artisan vendor:publish \
+  --provider="L5Swagger\L5SwaggerServiceProvider" \
+  --tag=swagger-ui \
+  --force || true
 
 echo "📄 Generating Swagger docs..."
 php artisan l5-swagger:generate || true
