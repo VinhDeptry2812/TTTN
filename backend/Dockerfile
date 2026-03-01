@@ -19,15 +19,11 @@ RUN composer install \
     --no-interaction \
     --prefer-dist
 
-RUN php artisan optimize:clear
-
-RUN chown -R www-data:www-data storage bootstrap/cache
-
-RUN a2enmod rewrite
-
-# Apache serve Laravel public/
+# Apache phải trỏ vào public folder
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
-EXPOSE 10000
+RUN chown -R www-data:www-data storage bootstrap/cache
+RUN a2enmod rewrite
 
-CMD ["apache2-foreground"]
+# Render inject PORT runtime
+CMD sed -i "s/80/${PORT}/g" /etc/apache2/ports.conf && apache2-foreground
