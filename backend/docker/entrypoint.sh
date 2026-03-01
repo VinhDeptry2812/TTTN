@@ -16,7 +16,8 @@ php artisan route:clear || true
 php artisan view:clear || true
 php artisan config:cache || true
 php artisan view:cache || true
-RUN php artisan l5-swagger:generate || true
+# Generate swagger
+php artisan l5-swagger:generate || true
 
 echo "🚀 Starting Nginx + PHP-FPM..."
 php-fpm -D

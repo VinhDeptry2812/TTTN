@@ -110,6 +110,7 @@ class AuthController extends Controller
      *         required=true
      *     ),
      *     @OA\Response(response=200, description="Đăng xuất thành công")
+     *     @OA\Response(response=401, description="Unauthorized")
      * )
      */
     // LOGOUT
