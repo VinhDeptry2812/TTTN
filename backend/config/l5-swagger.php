@@ -221,7 +221,7 @@ return [
          * Set this to `false` to disable swagger generation on production
         */
         'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', false),
-
+        'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
         /*
          * Set this to `true` to generate a copy of documentation in yaml format
         */
