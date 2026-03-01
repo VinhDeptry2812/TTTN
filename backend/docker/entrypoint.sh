@@ -16,6 +16,7 @@ php artisan route:clear || true
 php artisan view:clear || true
 
 # Generate swagger TRƯỚC khi cache
+php artisan vendor:publish --provider="L5Swagger\L5SwaggerServiceProvider" --force || true
 php artisan l5-swagger:generate || true
 
 # Cache SAU khi generate swagger
