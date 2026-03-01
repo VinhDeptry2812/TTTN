@@ -92,7 +92,7 @@ return [
             /*
              * Edit to set path where swagger ui assets should be stored
             */
-            'swagger_ui_assets_path' => 'vendor/swagger-api/swagger-ui/dist/',
+            'swagger_ui_assets_path' => 'vendor/swagger-api/swagger-ui/',
 
             /*
              * Absolute path to directories that should be excluded from scanning
