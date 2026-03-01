@@ -1,4 +1,4 @@
-FROM php:8.4-cli
+FROM php:8.4-apache
 
 RUN apt-get update && apt-get install -y \
     git unzip curl \
@@ -9,7 +9,7 @@ RUN docker-php-ext-install pdo pdo_mysql mbstring bcmath gd zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+WORKDIR /var/www/html
 
 COPY . .
 
@@ -19,18 +19,15 @@ RUN composer install \
     --no-interaction \
     --prefer-dist
 
-RUN php artisan config:clear || true
-RUN php artisan cache:clear || true 
-RUN php artisan route:clear || true
-RUN php artisan optimize:clear || true
+RUN php artisan optimize:clear
 
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-RUN chmod -R 775 storage bootstrap/cache || true
+RUN a2enmod rewrite
 
-# Copy entrypoint
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Apache phải chạy port runtime của Render
+RUN sed -i 's/80/${PORT}/g' /etc/apache2/ports.conf || true
 
 EXPOSE 10000
 
-CMD ["/entrypoint.sh"]
+CMD apache2-foreground
