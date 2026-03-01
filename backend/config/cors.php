@@ -19,7 +19,10 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => [
+        'https://tttn-2.onrender.com',
+        
+    ],
 
     'allowed_origins_patterns' => [],
 
