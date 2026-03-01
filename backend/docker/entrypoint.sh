@@ -17,10 +17,7 @@ php artisan route:clear || true
 php artisan view:clear || true
 
 echo "📦 Publishing Swagger assets..."
-php artisan vendor:publish \
-  --provider="L5Swagger\L5SwaggerServiceProvider" \
-  --tag=public \
-  --force || true
+php artisan l5-swagger:publish-assets || true
 
 echo "📄 Generating Swagger docs..."
 php artisan l5-swagger:generate || true
