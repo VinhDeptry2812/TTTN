@@ -12,12 +12,6 @@ php artisan cache:clear || true
 php artisan route:clear || true
 php artisan view:clear || true
 
-echo "📦 Publishing Swagger assets..."
-php artisan vendor:publish \
-  --provider="L5Swagger\L5SwaggerServiceProvider" \
-  --tag=swagger-ui \
-  --force || true
-
 echo "📄 Generating Swagger docs..."
 php artisan l5-swagger:generate || true
 
