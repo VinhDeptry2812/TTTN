@@ -14,10 +14,13 @@ php artisan config:clear || true
 php artisan cache:clear || true
 php artisan route:clear || true
 php artisan view:clear || true
+
+# Generate swagger TRƯỚC khi cache
+php artisan l5-swagger:generate || true
+
+# Cache SAU khi generate swagger
 php artisan config:cache || true
 php artisan view:cache || true
-# Generate swagger
-php artisan l5-swagger:generate || true
 
 echo "🚀 Starting Nginx + PHP-FPM..."
 php-fpm -D
