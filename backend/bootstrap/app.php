@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(HandleCors::class);
-        $middleware->append(\App\Http\Middleware\CorsMiddleware::class); // ← thêm custom middleware
+       
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
