@@ -18,7 +18,8 @@ RUN composer install \
     --no-interaction \
     --prefer-dist
 
-RUN mkdir -p public/vendor
+RUN php artisan vendor:publish --provider="L5Swagger\\L5SwaggerServiceProvider" --force
+
 RUN chmod -R 775 storage bootstrap/cache
 
 COPY docker/nginx.conf /etc/nginx/sites-available/default
