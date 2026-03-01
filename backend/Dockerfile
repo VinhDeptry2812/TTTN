@@ -1,4 +1,4 @@
-FROM php:8.4-apache
+FROM php:8.4-cli
 
 RUN apt-get update && apt-get install -y \
     git unzip curl \
@@ -9,7 +9,7 @@ RUN docker-php-ext-install pdo pdo_mysql mbstring bcmath gd zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www/html
+WORKDIR /var/www
 
 COPY . .
 
@@ -19,11 +19,18 @@ RUN composer install \
     --no-interaction \
     --prefer-dist
 
-# Apache phải trỏ vào public folder
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+RUN php artisan config:clear || true
+RUN php artisan cache:clear || true 
+RUN php artisan route:clear || true
+RUN php artisan optimize:clear || true
 
-RUN chown -R www-data:www-data storage bootstrap/cache
-RUN a2enmod rewrite
 
-# Render inject PORT runtime
-CMD sed -i "s/80/${PORT}/g" /etc/apache2/ports.conf && apache2-foreground
+RUN chmod -R 775 storage bootstrap/cache || true
+
+# Copy entrypoint
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 10000
+
+CMD ["/entrypoint.sh"]
