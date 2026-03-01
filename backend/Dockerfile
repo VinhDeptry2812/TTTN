@@ -25,9 +25,9 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 
 RUN a2enmod rewrite
 
-# Apache phải chạy port runtime của Render
-RUN sed -i 's/80/${PORT}/g' /etc/apache2/ports.conf || true
+# Apache serve Laravel public/
+RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
 EXPOSE 10000
 
-CMD apache2-foreground
+CMD ["apache2-foreground"]
