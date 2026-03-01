@@ -109,7 +109,7 @@ class AuthController extends Controller
      *     @OA\RequestBody(
      *         required=true
      *     ),
-     *     @OA\Response(response=200, description="Đăng xuất thành công")
+     *     @OA\Response(response=200, description="Đăng xuất thành công"),
      *     @OA\Response(response=401, description="Unauthorized")
      * )
      */
