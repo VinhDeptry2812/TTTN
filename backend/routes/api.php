@@ -29,20 +29,21 @@ Route::middleware('auth:api')->group(function () {
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-// Route tạm thời để fix lỗi migration trên Render (Xóa sau khi dùng xong)
+// Route TẠM THỜI để reset database (CẢNH BÁO: XÓA HẾT DỮ LIỆU CŨ)
 Route::get('/force-migrate', function () {
     try {
-        Artisan::call('migrate', ['--force' => true]);
+        Artisan::call('migrate:fresh', ['--force' => true]);
         return response()->json([
             'success' => true,
-            'message' => 'Migration thành công!',
+            'message' => 'Database đã được làm mới (migrate:fresh) thành công!',
             'output' => Artisan::output()
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Lỗi migration: ' . $e->getMessage()
+            'message' => 'Lỗi migrate:fresh: ' . $e->getMessage()
         ], 500);
     }
 });
+
 
