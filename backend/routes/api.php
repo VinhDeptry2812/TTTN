@@ -22,3 +22,9 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/products/{id}',  [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 });
+
+
+// Public routes quên mật khẩu
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
+
