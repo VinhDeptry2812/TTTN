@@ -10,8 +10,8 @@ sleep 5
 echo "🔧 Checking migration status..."
 php artisan migrate:status
 
-echo "🔧 Running migrate:fresh..."
-php artisan migrate:fresh --force
+echo "🔧 Running migrate..."
+php artisan migrate --force
 
 echo "📄 Publishing Swagger assets..."
 php artisan vendor:publish --provider="L5Swagger\L5SwaggerServiceProvider" --force || true
