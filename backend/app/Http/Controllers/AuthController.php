@@ -253,11 +253,20 @@ class AuthController extends Controller
         $resetLink = env('FRONTEND_URL', 'https://tttn-2.onrender.com/resetpassword')
             . '?token=' . $token
             . '&email=' . urlencode($request->email);
-        Mail::to($request->email)->send(new ResetPasswordMail($resetLink));
+        // Gửi mail
+        try {
+            Mail::to($request->email)->send(new ResetPasswordMail($resetLink));
+        } catch (\Exception $e) {
+            \Log::error('Mail Reset Password Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi gửi email: ' . $e->getMessage()
+            ], 500);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Link đặt lại mật khẩu đã được gửi vào email của bạn.',
-
         ]);
     }
     /**
