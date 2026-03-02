@@ -250,14 +250,14 @@ class AuthController extends Controller
             'created_at' => now(),
         ]);
         // Link gửi cho user (trỏ về frontend)
-        $resetLink = env('FRONTEND_URL', 'https://tttn-2.onrender.com/resetpassword')
+        $resetLink = env('FRONTEND_URL', 'http://localhost:3000/resetpassword') 
             . '?token=' . $token
             . '&email=' . urlencode($request->email);
         Mail::to($request->email)->send(new ResetPasswordMail($resetLink));
         return response()->json([
             'success' => true,
             'message' => 'Link đặt lại mật khẩu đã được gửi vào email của bạn.',
-            
+
         ]);
     }
     /**
