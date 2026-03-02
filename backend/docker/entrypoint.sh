@@ -7,6 +7,9 @@ chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 echo "⏳ Waiting for database..."
 sleep 5
 
+echo "🔧 Checking migration status..."
+php artisan migrate:status
+
 echo "🔧 Running migrations..."
 php artisan migrate --force
 
