@@ -1,10 +1,14 @@
 #!/bin/sh
 
+# Đảm bảo quyền ghi vào lúc runtime
+chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
 echo "⏳ Waiting for database..."
 sleep 5
 
 echo "🔧 Running migrations..."
-php artisan migrate --force || true
+php artisan migrate --force
 
 echo "📄 Publishing Swagger assets..."
 php artisan vendor:publish --provider="L5Swagger\L5SwaggerServiceProvider" --force || true
