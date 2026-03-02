@@ -20,7 +20,8 @@ RUN composer install \
 
 RUN php artisan vendor:publish --provider="L5Swagger\\L5SwaggerServiceProvider" --force
 
-RUN chmod -R 775 storage bootstrap/cache
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 COPY docker/nginx.conf /etc/nginx/sites-available/default
 COPY docker/entrypoint.sh /entrypoint.sh
