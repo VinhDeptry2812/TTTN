@@ -484,7 +484,6 @@ class AuthController extends Controller
      * )
      */
 
-    const FRONTEND_URL = env('FRONTEND_URL');
     public function handleGoogleCallback()
     {
         try {
@@ -505,6 +504,7 @@ class AuthController extends Controller
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
                     'password' => Hash::make(Str::random(24)),
+                    'avatar' => $googleUser->getAvatar(),
                 ]);
             }
 
@@ -512,13 +512,13 @@ class AuthController extends Controller
             $token = Auth::login($user);
 
             // Redirect về Frontend kèm Token
-            $frontendUrl = self::FRONTEND_URL . '/login?token=' . $token;
-            return redirect()->away($frontendUrl);
+            $frontendUrl = env('FRONTEND_URL', 'https://tttn-2.onrender.com');
+            return redirect()->away($frontendUrl . '/login?token=' . $token);
 
         } catch (\Exception $e) {
             \Log::error('Google Login Error: ' . $e->getMessage());
-            $frontendUrl = self::FRONTEND_URL . '/login?error=google_failed';
-            return redirect()->away($frontendUrl);
+            $frontendUrl = env('FRONTEND_URL', 'https://tttn-2.onrender.com');
+            return redirect()->away($frontendUrl . '/login?error=google_failed');
         }
 
     }
