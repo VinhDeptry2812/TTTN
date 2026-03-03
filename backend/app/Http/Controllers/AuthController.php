@@ -483,6 +483,8 @@ class AuthController extends Controller
      *     @OA\Response(response=302, description="Redirect về Frontend kèm token hoặc lỗi")
      * )
      */
+
+    const FRONTEND_URL = env('FRONTEND_URL');
     public function handleGoogleCallback()
     {
         try {
@@ -510,12 +512,14 @@ class AuthController extends Controller
             $token = Auth::login($user);
 
             // Redirect về Frontend kèm Token
-            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
-            return redirect()->away($frontendUrl . '/login?token=' . $token);
+            $frontendUrl = self::FRONTEND_URL . '/login?token=' . $token;
+            return redirect()->away($frontendUrl);
 
         } catch (\Exception $e) {
             \Log::error('Google Login Error: ' . $e->getMessage());
-            return redirect()->away(env('FRONTEND_URL', 'http://localhost:3000') . '/login?error=google_failed');
+            $frontendUrl = self::FRONTEND_URL . '/login?error=google_failed';
+            return redirect()->away($frontendUrl);
         }
+
     }
 }
