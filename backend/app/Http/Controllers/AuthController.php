@@ -14,6 +14,23 @@ use App\Mail\ResetPasswordMail;
 
 
 
+/**
+ * @OA\Schema(
+ *     schema="User",
+ *     title="User",
+ *     description="User model schema",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="name", type="string", example="Nguyen Van A"),
+ *     @OA\Property(property="email", type="string", example="user@gmail.com"),
+ *     @OA\Property(property="phone", type="string", nullable=true, example="0123456789"),
+ *     @OA\Property(property="gender", type="string", enum={"male", "female", "other"}, nullable=true, example="male"),
+ *     @OA\Property(property="birthday", type="string", format="date", nullable=true, example="1990-01-01"),
+ *     @OA\Property(property="avatar", type="string", nullable=true, example="avatar.png"),
+ *     @OA\Property(property="is_active", type="boolean", example=true),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ */
 class AuthController extends Controller
 {
     /**
@@ -404,7 +421,7 @@ class AuthController extends Controller
             'phone' => 'nullable|string|max:15',
             'gender' => 'nullable|in:male,female,other',
             'birthday' => 'nullable|date',
-            
+
         ], [
             'in' => 'Giới tính không hợp lệ.',
             'date' => 'Ngày sinh không đúng định dạng ngày tháng.',
