@@ -457,6 +457,7 @@ class AuthController extends Controller
      * @OA\Get(
      *     path="/auth/google",
      *     summary="Chuyển hướng sang trang đăng nhập Google",
+     *     description="GỌI TRÊN TRÌNH DUYỆT: Endpoint này không trả về JSON. Nó sẽ redirect người dùng sang trang OAuth của Google. Sau khi người dùng đăng nhập, Google sẽ gọi lại endpoint /callback kèm theo mã 'code'.",
      *     tags={"Auth"},
      *     @OA\Response(response=302, description="Redirect to Google OAuth")
      * )
@@ -469,13 +470,14 @@ class AuthController extends Controller
     /**
      * @OA\Get(
      *     path="/auth/google/callback",
-     *     summary="Xử lý callback từ Google",
+     *     summary="Xử lý callback từ Google (Hệ thống tự động gọi)",
+     *     description="HÀNH VI TỰ ĐỘNG: Endpoint này được thiết kế để Google gọi lại sau khi người dùng xác thực thành công. Mã 'code' được Google cấp tự động và chỉ có hiệu lực một lần trong vài giây. Bạn không nên gọi endpoint này một cách thủ công từ Swagger/Postman.",
      *     tags={"Auth"},
      *     @OA\Parameter(
      *         name="code",
      *         in="query",
      *         required=true,
-     *         description="OAuth code từ Google",
+     *         description="Mã xác thực một lần (One-time code) do Google cấp",
      *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(response=302, description="Redirect về Frontend kèm token hoặc lỗi")
