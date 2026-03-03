@@ -360,4 +360,78 @@ class AuthController extends Controller
             'message' => 'Đặt lại mật khẩu thành công.'
         ]);
     }
+    /**
+     * @OA\Put(
+     *     path="/update-profile",
+     *     summary="Cập nhật thông tin cá nhân",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="Nguyen Van B"),
+     *             @OA\Property(property="phone", type="string", example="0123456789"),
+     *             @OA\Property(property="gender", type="string", enum={"male", "female", "other"}, example="male"),
+     *             @OA\Property(property="birthday", type="string", format="date", example="1990-01-01")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Cập nhật thông tin thành công"),
+     *             @OA\Property(property="user", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation lỗi")
+     * )
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'string|max:100',
+            'phone' => 'nullable|string|max:15',
+            'gender' => 'nullable|in:male,female,other',
+            'birthday' => 'nullable|date',
+            
+        ], [
+            'in' => 'Giới tính không hợp lệ.',
+            'date' => 'Ngày sinh không đúng định dạng ngày tháng.',
+            'max' => ':attribute quá dài.',
+        ], [
+            'name' => 'Họ tên',
+            'phone' => 'Số điện thoại',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation lỗi',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Cập nhật thông tin (chỉ lấy các trường được gửi lên)
+        $data = $request->only(['name', 'phone', 'gender', 'birthday']);
+
+        // Hiện tại dùng JWT, Auth::user() trả về model User của chúng ta
+        $user->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật thông tin thành công',
+            'user' => $user
+        ]);
+    }
 }

@@ -16,6 +16,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/update-profile', [AuthController::class, 'updateProfile']);
 
     // Các route cần đăng nhập mới dùng được
     Route::post('/products', [ProductController::class, 'store']);
