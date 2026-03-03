@@ -25,7 +25,7 @@ cp -R vendor/swagger-api/swagger-ui/dist/* public/docs/asset/ || true
 
 
 echo "📄 Generating Swagger docs..."
-php artisan l5-swagger:generate || true
+php artisan l5-swagger:generate
 
 echo "🧹 Clearing caches..."
 php artisan config:clear || true
