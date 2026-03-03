@@ -27,6 +27,10 @@ Route::middleware('auth:api')->group(function () {
 
 // Public routes quên mật khẩu
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+// Link này trỏ từ Frontend để bắt đầu redirect sang Google
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
+// Link này là callback từ Google trả về
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 

@@ -375,6 +375,45 @@
                 ]
             }
         },
+        "/auth/google": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Chuyển hướng sang trang đăng nhập Google",
+                "operationId": "8dfa521fc4b6bed7dc29067f3c3b72b1",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to Google OAuth"
+                    }
+                }
+            }
+        },
+        "/auth/google/callback": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Xử lý callback từ Google",
+                "operationId": "0da573308ea6982cdd61fa5120d9e835",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "query",
+                        "description": "OAuth code từ Google",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect về Frontend kèm token hoặc lỗi"
+                    }
+                }
+            }
+        },
         "/products": {
             "get": {
                 "tags": [

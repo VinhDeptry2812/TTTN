@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ResetPasswordMail;
+use Laravel\Socialite\Facades\Socialite;
 
 
 
@@ -450,5 +451,69 @@ class AuthController extends Controller
             'message' => 'Cập nhật thông tin thành công',
             'user' => $user
         ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/auth/google",
+     *     summary="Chuyển hướng sang trang đăng nhập Google",
+     *     tags={"Auth"},
+     *     @OA\Response(response=302, description="Redirect to Google OAuth")
+     * )
+     */
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->stateless()->redirect();
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/auth/google/callback",
+     *     summary="Xử lý callback từ Google",
+     *     tags={"Auth"},
+     *     @OA\Parameter(
+     *         name="code",
+     *         in="query",
+     *         required=true,
+     *         description="OAuth code từ Google",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(response=302, description="Redirect về Frontend kèm token hoặc lỗi")
+     * )
+     */
+    public function handleGoogleCallback()
+    {
+        try {
+            // Fix lỗi SSL trên Windows (chỉ apply cho môi trường local)
+            if (config('app.env') === 'local') {
+                $guzzleClient = new \GuzzleHttp\Client(['verify' => false]);
+                Socialite::driver('google')->setHttpClient($guzzleClient);
+            }
+
+            $googleUser = Socialite::driver('google')->stateless()->user();
+
+            // Tìm user theo email
+            $user = User::where('email', $googleUser->getEmail())->first();
+
+            if (!$user) {
+                // Tạo mới nếu chưa có
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'password' => Hash::make(Str::random(24)),
+                ]);
+            }
+
+            // Đăng nhập và tạo token
+            $token = Auth::login($user);
+
+            // Redirect về Frontend kèm Token
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+            return redirect()->away($frontendUrl . '/login?token=' . $token);
+
+        } catch (\Exception $e) {
+            \Log::error('Google Login Error: ' . $e->getMessage());
+            return redirect()->away(env('FRONTEND_URL', 'http://localhost:3000') . '/login?error=google_failed');
+        }
     }
 }
