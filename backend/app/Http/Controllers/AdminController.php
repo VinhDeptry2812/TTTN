@@ -7,11 +7,92 @@ use Illuminate\Http\Request;
 class AdminController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Post(
+     *     path="/admin/login",
+     *     summary="Đăng nhập Admin",
+     *     tags={"Admin"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", example="admin@gmail.com"),
+     *             @OA\Property(property="password", type="string", example="password")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Đăng nhập thành công"),
+     *     @OA\Response(response=401, description="Sai email hoặc mật khẩu")
+     * )
      */
+    public function login(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+
+        if (!$token = auth('admin-api')->attempt($credentials)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email hoặc mật khẩu admin không đúng'
+            ], 401);
+        }
+
+        return response()->json([
+            'success' => true,
+            'token' => $token,
+            'admin' => auth('admin-api')->user()
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/admin/logout",
+     *     summary="Đăng xuất Admin",
+     *     tags={"Admin"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Đăng xuất thành công"),
+     *     @OA\Response(response=401, description="Chưa xác thực")
+     * )
+     */
+    public function logout()
+    {
+        auth('admin-api')->logout();
+        return response()->json(['success' => true, 'message' => 'Admin logout thành công']);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/admin/me",
+     *     summary="Lấy thông tin Admin đang đăng nhập",
+     *     tags={"Admin"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Lấy thông tin thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="admin", 
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Admin"),
+     *                 @OA\Property(property="email", type="string", example="admin@gmail.com"),
+     *                 @OA\Property(property="role", type="string", example="superadmin"),
+     *                 @OA\Property(property="is_active", type="integer", example=1)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Chưa xác thực")
+     * )
+     */
+    public function me()
+    {
+        return response()->json([
+            'success' => true,
+            'admin' => auth('admin-api')->user()
+        ]);
+    }
+
     public function index()
     {
-        
+        // ... (code cũ)
     }
 
     /**
