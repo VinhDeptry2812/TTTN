@@ -1,6 +1,6 @@
-    <?php
+<?php
 
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [ProductController::class, 'index_json']);
+Route::get('/', [ProductController::class, 'getUsers']);

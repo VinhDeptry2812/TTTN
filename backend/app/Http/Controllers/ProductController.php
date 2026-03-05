@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
@@ -64,10 +65,10 @@ class ProductController extends Controller
         return response()->json($products);
     }
 
-    public function index_json()
+    public function getUsers()
     {
-        $products = Product::with('category')->get();
-        return view('products', compact('products'));
+        $users = User::select('id', 'name', 'email')->get();
+        return view('products', compact('users'));
     }
 
     /**
