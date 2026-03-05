@@ -10,95 +10,71 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        $sofaId = DB::table('categories')->where('name', 'Sofa')->first()->id;
-        $bedId = DB::table('categories')->where('name', 'Giường ngủ')->first()->id;
-        $teaTableId = DB::table('categories')->where('name', 'Bàn trà')->first()->id;
-
-        // Sofa
-        $sofaData = [
-            'category_id' => $sofaId,
-            'name' => 'Sofa Da Cao Cấp Italy',
-            'slug' => Str::slug('Sofa Da Cao Cấp Italy'),
-            'description' => 'Sofa da bò thật nhập khẩu từ Ý, khung gỗ sồi bền bỉ, mang lại sự sang trọng cho phòng khách.',
-            'base_price' => 25000000,
-            'sale_price' => 22000000,
-            'material' => 'Da bò, Gỗ sồi',
-            'brand' => 'Casa Italia',
-            'is_featured' => true,
-            'updated_at' => now(),
+        // 1. Lấy ID của các category hiện có
+        $categories = [
+            'Sofa' => DB::table('categories')->where('name', 'Sofa')->value('id'),
+            'Giường ngủ' => DB::table('categories')->where('name', 'Giường ngủ')->value('id'),
+            'Bàn trà' => DB::table('categories')->where('name', 'Bàn trà')->value('id'),
         ];
-        DB::table('products')->updateOrInsert(['sku' => 'SOFA-ITA-001'], array_merge($sofaData, ['created_at' => now()]));
-        $p1 = DB::table('products')->where('sku', 'SOFA-ITA-001')->value('id');
 
-        DB::table('product_variants')->updateOrInsert(
-            ['sku' => 'SOFA-ITA-BRN'],
-            [
-                'product_id' => $p1,
-                'color' => 'Nâu cà phê',
-                'size' => '2.8m x 1.7m',
-                'price' => 22000000,
-                'stock_quantity' => 5,
+        // 2. Dữ liệu thô để trộn ngẫu nhiên
+        $brands = ['Casa Italia', 'NoiThatViet', 'LuxHome', 'ModernLife', 'WoodenArt'];
+        $materials = ['Gỗ sồi', 'Gỗ gõ đỏ', 'Da bò thật', 'Vải nỉ', 'Sắt sơn tĩnh điện', 'Đá Marble'];
+        
+        $productTypes = [
+            'Sofa' => ['Sofa Góc L', 'Sofa Băng Decor', 'Sofa Giường Thông Minh', 'Sofa Đơn Thư Giãn', 'Sofa Tân Cổ Điển'],
+            'Giường ngủ' => ['Giường Gỗ Hiện Đại', 'Giường Bọc Da', 'Giường Tầng Trẻ Em', 'Giường King Size', 'Giường Nhật Bản'],
+            'Bàn trà' => ['Bàn Trà Tròn', 'Bàn Trà Đôi', 'Bàn Trà Mặt Kính', 'Bàn Trà Gỗ Nguyên Khối', 'Bàn Trà Thông Minh'],
+        ];
+
+        // 3. Vòng lặp tạo 40 sản phẩm
+        for ($i = 1; $i <= 40; $i++) {
+            // Chọn ngẫu nhiên một loại danh mục
+            $categoryName = array_rand($productTypes);
+            $categoryId = $categories[$categoryName];
+            
+            // Tạo tên sản phẩm ngẫu nhiên từ danh sách loại sản phẩm
+            $typeName = $productTypes[$categoryName][array_rand($productTypes[$categoryName])];
+            $productName = $typeName . " Model " . Str::upper(Str::random(3)) . "-" . $i;
+            
+            $basePrice = rand(20, 100) * 500000; // Giá từ 10tr đến 50tr
+            $salePrice = rand(0, 1) ? $basePrice * 0.9 : null; // 50% cơ hội có giảm giá 10%
+            $sku = Str::upper(Str::substr($categoryName, 0, 3)) . "-SKU-" . str_pad($i, 3, '0', STR_PAD_LEFT);
+
+            // Insert vào bảng products
+            $productId = DB::table('products')->insertGetId([
+                'category_id' => $categoryId,
+                'name' => $productName,
+                'slug' => Str::slug($productName) . '-' . time() . $i,
+                'sku' => $sku,
+                'description' => "Mô tả cho sản phẩm $productName: Chất lượng cao cấp, thiết kế hiện đại phù hợp cho mọi không gian nội thất.",
+                'base_price' => $basePrice,
+                'sale_price' => $salePrice,
+                'material' => $materials[array_rand($materials)],
+                'brand' => $brands[array_rand($brands)],
+                'is_featured' => (bool)rand(0, 1),
                 'created_at' => now(),
                 'updated_at' => now(),
-            ]
-        );
+            ]);
 
-        // Giường
-        $bedData = [
-            'category_id' => $bedId,
-            'name' => 'Giường Ngủ Gỗ Gõ Đỏ',
-            'slug' => Str::slug('Giường Ngủ Gỗ Gõ Đỏ'),
-            'description' => 'Giường ngủ được làm từ gỗ gõ đỏ tự nhiên 100%, thiết kế cổ điển bền đẹp theo thời gian.',
-            'base_price' => 15000000,
-            'sale_price' => 13500000,
-            'material' => 'Gỗ Gõ Đỏ',
-            'brand' => 'NoiThatViet',
-            'is_featured' => true,
-            'updated_at' => now(),
-        ];
-        DB::table('products')->updateOrInsert(['sku' => 'BED-RED-002'], array_merge($bedData, ['created_at' => now()]));
-        $p2 = DB::table('products')->where('sku', 'BED-RED-002')->value('id');
+            // 4. Tạo 1-2 biến thể (variant) cho mỗi sản phẩm
+            $colors = ['Xám', 'Xanh Dương', 'Trắng', 'Đen', 'Vàng Sồi'];
+            $sizes = ['S', 'M', 'L', 'Standard'];
 
-        DB::table('product_variants')->updateOrInsert(
-            ['sku' => 'BED-RED-18'],
-            [
-                'product_id' => $p2,
-                'color' => 'Gỗ tự nhiên',
-                'size' => '1.8m x 2m',
-                'price' => 13500000,
-                'stock_quantity' => 8,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
-        );
+            for ($j = 1; $j <= rand(1, 2); $j++) {
+                DB::table('product_variants')->insert([
+                    'product_id' => $productId,
+                    'sku' => $sku . "-VAR-" . $j,
+                    'color' => $colors[array_rand($colors)],
+                    'size' => $sizes[array_rand($sizes)],
+                    'price' => $salePrice ?? $basePrice,
+                    'stock_quantity' => rand(5, 50),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
 
-        // Bàn trà
-        $tableData = [
-            'category_id' => $teaTableId,
-            'name' => 'Bàn Trà Kim Cương Mặt Đá',
-            'slug' => Str::slug('Bàn Trà Kim Cương Mặt Đá'),
-            'description' => 'Bàn trà với khung sắt sơn tĩnh điện mạ vàng và mặt đá ceramic chống thấm cao cấp.',
-            'base_price' => 3500000,
-            'sale_price' => null,
-            'material' => 'Sắt mạ vàng, Đá Ceramic',
-            'brand' => 'LuxHome',
-            'is_featured' => false,
-            'updated_at' => now(),
-        ];
-        DB::table('products')->updateOrInsert(['sku' => 'TAB-DIA-003'], array_merge($tableData, ['created_at' => now()]));
-        $p3 = DB::table('products')->where('sku', 'TAB-DIA-003')->value('id');
-
-        DB::table('product_variants')->updateOrInsert(
-            ['sku' => 'TAB-DIA-WHT'],
-            [
-                'product_id' => $p3,
-                'color' => 'Trắng/Vàng',
-                'size' => 'D80cm',
-                'price' => 3500000,
-                'stock_quantity' => 15,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
-        );
+        $this->command->info('Đã tạo xong 40 sản phẩm mẫu thành công!');
     }
 }

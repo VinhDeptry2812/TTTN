@@ -51,6 +51,88 @@
                 }
             }
         },
+        "/admin/logout": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Đăng xuất Admin",
+                "operationId": "62127654218171e947bfb021ecd6df28",
+                "responses": {
+                    "200": {
+                        "description": "Đăng xuất thành công"
+                    },
+                    "401": {
+                        "description": "Chưa xác thực"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/me": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Lấy thông tin Admin đang đăng nhập",
+                "operationId": "5894139af62b9ea3a13677699d1c941b",
+                "responses": {
+                    "200": {
+                        "description": "Lấy thông tin thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "admin": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Admin"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "admin@gmail.com"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "superadmin"
+                                                },
+                                                "is_active": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa xác thực"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/register": {
             "post": {
                 "tags": [
@@ -462,11 +544,69 @@
                 "tags": [
                     "Products"
                 ],
-                "summary": "Lấy danh sách sản phẩm",
+                "summary": "Lấy danh sách sản phẩm (Infinite Scrolling)",
                 "operationId": "c1ff6f862214e1896c59cfe0491ce0e8",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Số lượng sản phẩm mỗi trang (mặc định 12)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 12
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Mã cursor để đánh dấu vị trí trang tiếp theo (Lấy từ next_page_url của response trước)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Thành công"
+                        "description": "Trả về danh sách sản phẩm thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "path": {
+                                            "type": "string"
+                                        },
+                                        "per_page": {
+                                            "type": "integer"
+                                        },
+                                        "next_cursor": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "next_page_url": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev_cursor": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev_page_url": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -476,22 +616,102 @@
                 "tags": [
                     "Products"
                 ],
-                "summary": "Tạo sản phẩm mới",
+                "summary": "Tạo sản phẩm mới (Admin)",
                 "operationId": "5b4712b82366a108a816402b5d526fa5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "category_id",
+                                    "base_price",
+                                    "sku"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Bàn Trà Sofa Cao Cấp"
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "base_price": {
+                                        "type": "number",
+                                        "example": 2500000
+                                    },
+                                    "sale_price": {
+                                        "type": "number",
+                                        "example": 2000000
+                                    },
+                                    "sku": {
+                                        "type": "string",
+                                        "example": "TAB-SOF-001"
+                                    },
+                                    "material": {
+                                        "type": "string",
+                                        "example": "Gỗ Óc Chó"
+                                    },
+                                    "brand": {
+                                        "type": "string",
+                                        "example": "Luxe Furniture"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Mô tả abc xyz"
+                                    },
+                                    "is_active": {
+                                        "type": "integer",
+                                        "enum": [
+                                            0,
+                                            1
+                                        ],
+                                        "example": 1
+                                    },
+                                    "is_featured": {
+                                        "type": "integer",
+                                        "enum": [
+                                            0,
+                                            1
+                                        ],
+                                        "example": 1
+                                    },
+                                    "image": {
+                                        "description": "File ảnh",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "201": {
                         "description": "Tạo thành công"
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/products/{id}": {
-            "put": {
+            "post": {
                 "tags": [
                     "Products"
                 ],
-                "summary": "Cập nhật sản phẩm",
-                "operationId": "1419d479f9340e30e67fe21a2ca525b7",
+                "summary": "Cập nhật sản phẩm (Admin)",
+                "description": "[FE NOTE] API này thực chất là PUT nhưng phải dùng method POST để hỗ trợ upload file (multipart/form-data). Để Laravel hiểu đây là PUT, PHẢI thêm field ẩn `_method = PUT` vào FormData khi gọi từ Frontend (React/Axios). Không cần làm gì thêm ở phía Backend.",
+                "operationId": "1c52fc58e33d71677ba74cb346470913",
                 "parameters": [
                     {
                         "name": "id",
@@ -502,17 +722,86 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "_method": {
+                                        "description": "[BẮT BUỘC] Luôn điền 'PUT' vào đây. Đây là cơ chế Method Spoofing của Laravel.",
+                                        "type": "string",
+                                        "example": "PUT"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Sofa Mới"
+                                    },
+                                    "base_price": {
+                                        "type": "number",
+                                        "example": 2500000
+                                    },
+                                    "sale_price": {
+                                        "type": "number",
+                                        "example": 1800000
+                                    },
+                                    "material": {
+                                        "type": "string",
+                                        "example": "Gỗ sồi"
+                                    },
+                                    "brand": {
+                                        "type": "string",
+                                        "example": "LuxHome"
+                                    },
+                                    "is_active": {
+                                        "type": "integer",
+                                        "enum": [
+                                            0,
+                                            1
+                                        ],
+                                        "example": 1
+                                    },
+                                    "is_featured": {
+                                        "type": "integer",
+                                        "enum": [
+                                            0,
+                                            1
+                                        ],
+                                        "example": 0
+                                    },
+                                    "image": {
+                                        "description": "[TÙY CHỌN] Ảnh mới. Nếu không gửi, ảnh cũ sẽ được giữ nguyên.",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Cập nhật thành công"
+                    },
+                    "404": {
+                        "description": "Sản phẩm không tồn tại"
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             },
             "delete": {
                 "tags": [
                     "Products"
                 ],
-                "summary": "Xóa sản phẩm",
+                "summary": "Xóa sản phẩm (Admin - Soft Delete)",
                 "operationId": "fe34b364a3f192305598b65d04d06b5d",
                 "parameters": [
                     {
@@ -527,8 +816,281 @@
                 "responses": {
                     "200": {
                         "description": "Xóa thành công"
+                    },
+                    "404": {
+                        "description": "Sản phẩm không tồn tại"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/products/{productId}/variants": {
+            "get": {
+                "tags": [
+                    "Product Variants"
+                ],
+                "summary": "Lấy tất cả biến thể của một sản phẩm",
+                "operationId": "9b463acdcb9ce451e068c044481c2a64",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    },
+                    "404": {
+                        "description": "Sản phẩm không tồn tại"
                     }
                 }
+            },
+            "post": {
+                "tags": [
+                    "Product Variants"
+                ],
+                "summary": "Thêm biến thể mới cho sản phẩm (Admin)",
+                "operationId": "de0282c93181c9573c41ed93d11c8e31",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "sku",
+                                    "price"
+                                ],
+                                "properties": {
+                                    "sku": {
+                                        "type": "string",
+                                        "example": "SOFA-BRN-2.8M"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 22000000
+                                    },
+                                    "stock_quantity": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "color": {
+                                        "type": "string",
+                                        "example": "Nâu cà phê"
+                                    },
+                                    "wood_type": {
+                                        "type": "string",
+                                        "example": "Gỗ sồi"
+                                    },
+                                    "upholstery": {
+                                        "type": "string",
+                                        "example": "Da bò thật"
+                                    },
+                                    "finish": {
+                                        "type": "string",
+                                        "example": "Walnut"
+                                    },
+                                    "size": {
+                                        "type": "string",
+                                        "example": "2.8m x 1.7m"
+                                    },
+                                    "width_cm": {
+                                        "type": "number",
+                                        "example": 280
+                                    },
+                                    "depth_cm": {
+                                        "type": "number",
+                                        "example": 170
+                                    },
+                                    "height_cm": {
+                                        "type": "number",
+                                        "example": 85
+                                    },
+                                    "weight_kg": {
+                                        "type": "number",
+                                        "example": 75.5
+                                    },
+                                    "seat_height_cm": {
+                                        "type": "string",
+                                        "example": "45cm"
+                                    },
+                                    "is_available": {
+                                        "type": "integer",
+                                        "enum": [
+                                            0,
+                                            1
+                                        ],
+                                        "example": 1
+                                    },
+                                    "image": {
+                                        "description": "Ảnh riêng của biến thể",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo thành công"
+                    },
+                    "404": {
+                        "description": "Sản phẩm không tồn tại"
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/products/{productId}/variants/{variantId}": {
+            "post": {
+                "tags": [
+                    "Product Variants"
+                ],
+                "summary": "Cập nhật biến thể sản phẩm (Admin)",
+                "description": "[FE NOTE] Dùng POST thay vì PUT để hỗ trợ upload file. Thêm field `_method = PUT` vào FormData.",
+                "operationId": "2b25a164c986721401703f2da3d16d81",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "variantId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "_method": {
+                                        "description": "[BẮT BUỘC] Method Spoofing",
+                                        "type": "string",
+                                        "example": "PUT"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 20000000
+                                    },
+                                    "stock_quantity": {
+                                        "type": "integer",
+                                        "example": 10
+                                    },
+                                    "color": {
+                                        "type": "string",
+                                        "example": "Xám"
+                                    },
+                                    "is_available": {
+                                        "type": "integer",
+                                        "enum": [
+                                            0,
+                                            1
+                                        ],
+                                        "example": 1
+                                    },
+                                    "image": {
+                                        "description": "[TÙY CHỌN] Ảnh mới",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công"
+                    },
+                    "404": {
+                        "description": "Biến thể không tồn tại"
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Product Variants"
+                ],
+                "summary": "Xóa biến thể sản phẩm (Admin)",
+                "operationId": "77f1d1c414843a9de13da6914f03eca6",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "variantId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thành công"
+                    },
+                    "404": {
+                        "description": "Biến thể không tồn tại"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         }
     },
@@ -591,6 +1153,13 @@
                 },
                 "type": "object"
             }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
         }
     },
     "tags": [
@@ -605,6 +1174,10 @@
         {
             "name": "Products",
             "description": "Products"
+        },
+        {
+            "name": "Product Variants",
+            "description": "Product Variants"
         }
     ]
 }

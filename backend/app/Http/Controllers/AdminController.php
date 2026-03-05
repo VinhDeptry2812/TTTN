@@ -41,12 +41,47 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/admin/logout",
+     *     summary="Đăng xuất Admin",
+     *     tags={"Admin"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Đăng xuất thành công"),
+     *     @OA\Response(response=401, description="Chưa xác thực")
+     * )
+     */
     public function logout()
     {
         auth('admin-api')->logout();
         return response()->json(['success' => true, 'message' => 'Admin logout thành công']);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/admin/me",
+     *     summary="Lấy thông tin Admin đang đăng nhập",
+     *     tags={"Admin"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Lấy thông tin thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="admin", 
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Admin"),
+     *                 @OA\Property(property="email", type="string", example="admin@gmail.com"),
+     *                 @OA\Property(property="role", type="string", example="superadmin"),
+     *                 @OA\Property(property="is_active", type="integer", example=1)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Chưa xác thực")
+     * )
+     */
     public function me()
     {
         return response()->json([
