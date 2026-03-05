@@ -6,7 +6,7 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'https://tttn-2.onrender.com',
+        'https://tttn-2.onrender.com',  
         'http://localhost:3000',
     ],
 
@@ -18,5 +18,5 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 ];
