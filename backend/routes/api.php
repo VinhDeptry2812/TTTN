@@ -18,11 +18,22 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/update-profile', [AuthController::class, 'updateProfile']);
 
-    // Các route cần đăng nhập mới dùng được
+    
+});
+
+// Route cho Quản trị viên (Admin)
+Route::middleware('auth:admin-api')->group(function () {
+    Route::get('/admin/dashboard', [AdminController::class, 'index']);
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+
+    // Nếu muốn check role cụ thể (superadmin mới được vào)
+    Route::middleware('is_superadmin')->group(function() {
+        //
+    });
 });
+
 
 
 // Public routes quên mật khẩu
