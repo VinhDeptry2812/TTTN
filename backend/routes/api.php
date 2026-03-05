@@ -34,11 +34,11 @@ Route::middleware('auth:admin-api')->group(function () {
     Route::post('/admin/logout', [AdminController::class, 'logout']);
     Route::get('/admin/dashboard', [AdminController::class, 'index']);
     Route::post('/products/create', [ProductController::class, 'store']);
-    Route::post('/products/{id}', [ProductController::class, 'update']);
+    Route::match(['POST', 'PUT'], '/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
     // Product Variants (Admin)
     Route::post('/products/{productId}/variants', [ProductVariantController::class, 'store']);
-    Route::post('/products/{productId}/variants/{variantId}', [ProductVariantController::class, 'update']);
+    Route::match(['POST', 'PUT'], '/products/{productId}/variants/{variantId}', [ProductVariantController::class, 'update']);
     Route::delete('/products/{productId}/variants/{variantId}', [ProductVariantController::class, 'destroy']);
 
     // Nếu muốn check role cụ thể (superadmin mới được vào)

@@ -103,6 +103,7 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
+        \Log::info('Product store hit', ['data' => $request->all()]);
         $validated = $request->validated();
 
         $validated['slug'] = Str::slug($validated['name']) . '-' . time();
@@ -113,6 +114,7 @@ class ProductController extends Controller
         }
 
         $product = Product::create($validated);
+        \Log::info('Product created in DB', ['id' => $product->id]);
 
         return response()->json([
             'success' => true,
@@ -175,7 +177,7 @@ class ProductController extends Controller
             'success' => true,
             'message' => 'Cập nhật sản phẩm thành công!',
             'data' => $product->fresh()
-        ]);
+        ], 200);
     }
 
     /**
