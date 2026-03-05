@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/products', [ProductController::class, 'index']);
@@ -18,18 +19,23 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/update-profile', [AuthController::class, 'updateProfile']);
 
-    
+
 });
+
+// Public route cho Admin
+Route::post('/admin/login', [AdminController::class, 'login']);
 
 // Route cho Quản trị viên (Admin)
 Route::middleware('auth:admin-api')->group(function () {
+    Route::get('/admin/me', [AdminController::class, 'me']);
+    Route::post('/admin/logout', [AdminController::class, 'logout']);
     Route::get('/admin/dashboard', [AdminController::class, 'index']);
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
     // Nếu muốn check role cụ thể (superadmin mới được vào)
-    Route::middleware('is_superadmin')->group(function() {
+    Route::middleware('is_superadmin')->group(function () {
         //
     });
 });

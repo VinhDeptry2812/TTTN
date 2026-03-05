@@ -10,6 +10,47 @@
         }
     ],
     "paths": {
+        "/admin/login": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Đăng nhập Admin",
+                "operationId": "5a44a85b9dc2cd4c50f1adf5b9b1095a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "admin@gmail.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Đăng nhập thành công"
+                    },
+                    "401": {
+                        "description": "Sai email hoặc mật khẩu"
+                    }
+                }
+            }
+        },
         "/register": {
             "post": {
                 "tags": [
@@ -381,6 +422,7 @@
                     "Auth"
                 ],
                 "summary": "Chuyển hướng sang trang đăng nhập Google",
+                "description": "GỌI TRÊN TRÌNH DUYỆT: Endpoint này không trả về JSON. Nó sẽ redirect người dùng sang trang OAuth của Google. Sau khi người dùng đăng nhập, Google sẽ gọi lại endpoint /callback kèm theo mã 'code'.",
                 "operationId": "8dfa521fc4b6bed7dc29067f3c3b72b1",
                 "responses": {
                     "302": {
@@ -394,13 +436,14 @@
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Xử lý callback từ Google",
+                "summary": "Xử lý callback từ Google (Hệ thống tự động gọi)",
+                "description": "HÀNH VI TỰ ĐỘNG: Endpoint này được thiết kế để Google gọi lại sau khi người dùng xác thực thành công. Mã 'code' được Google cấp tự động và chỉ có hiệu lực một lần trong vài giây. Không nên gọi endpoint này một cách thủ công từ Swagger/Postman.",
                 "operationId": "0da573308ea6982cdd61fa5120d9e835",
                 "parameters": [
                     {
                         "name": "code",
                         "in": "query",
-                        "description": "OAuth code từ Google",
+                        "description": "Mã xác thực một lần (One-time code) do Google cấp",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -551,6 +594,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Admin",
+            "description": "Admin"
+        },
         {
             "name": "Auth",
             "description": "Auth"
