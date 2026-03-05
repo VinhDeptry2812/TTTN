@@ -464,14 +464,26 @@ class AuthController extends Controller
      */
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->stateless()->redirect();
+        $redirectUrl = config('services.google.redirect');
+        $driver = Socialite::driver('google')->stateless()->redirectUrl($redirectUrl);
+
+        // Bỏ qua kiểm tra SSL trên môi trường local (Windows)
+        if (config('app.env') === 'local') {
+            $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
+        }
+
+        $url = $driver->redirect()->getTargetUrl();
+
+        return response()
+            ->view('auth.redirect', ['url' => $url])
+            ->header('Content-Type', 'text/html');
     }
 
     /**
      * @OA\Get(
      *     path="/auth/google/callback",
      *     summary="Xử lý callback từ Google (Hệ thống tự động gọi)",
-     *     description="HÀNH VI TỰ ĐỘNG: Endpoint này được thiết kế để Google gọi lại sau khi người dùng xác thực thành công. Mã 'code' được Google cấp tự động và chỉ có hiệu lực một lần trong vài giây. Bạn không nên gọi endpoint này một cách thủ công từ Swagger/Postman.",
+     *     description="HÀNH VI TỰ ĐỘNG: Endpoint này được thiết kế để Google gọi lại sau khi người dùng xác thực thành công. Mã 'code' được Google cấp tự động và chỉ có hiệu lực một lần trong vài giây. Không nên gọi endpoint này một cách thủ công từ Swagger/Postman.",
      *     tags={"Auth"},
      *     @OA\Parameter(
      *         name="code",
@@ -487,13 +499,15 @@ class AuthController extends Controller
     public function handleGoogleCallback()
     {
         try {
-            // Fix lỗi SSL trên Windows (chỉ apply cho môi trường local)
+            $redirectUrl = config('services.google.redirect');
+            $driver = Socialite::driver('google')->stateless()->redirectUrl($redirectUrl);
+
+            // Bỏ qua kiểm tra SSL trên môi trường local (Windows)
             if (config('app.env') === 'local') {
-                $guzzleClient = new \GuzzleHttp\Client(['verify' => false]);
-                Socialite::driver('google')->setHttpClient($guzzleClient);
+                $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
             }
 
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            $googleUser = $driver->user();
 
             // Tìm user theo email
             $user = User::where('email', $googleUser->getEmail())->first();
@@ -509,16 +523,26 @@ class AuthController extends Controller
             }
 
             // Đăng nhập và tạo token
+            /** @var string $token */
             $token = Auth::login($user);
 
             // Redirect về Frontend kèm Token
-            $frontendUrl = env('FRONTEND_URL', 'https://tttn-2.onrender.com');
-            return redirect()->away($frontendUrl . '/login?token=' . $token);
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000/');
+            // Thay vì redirect toàn trang, trả về view để gửi message tới trang mẹ
+            return response()
+                ->view('auth.callback', [
+                    'token' => $token,
+                    'user' => $user
+                ])
+                ->header('Content-Type', 'text/html');
 
         } catch (\Exception $e) {
             \Log::error('Google Login Error: ' . $e->getMessage());
-            $frontendUrl = env('FRONTEND_URL', 'https://tttn-2.onrender.com');
-            return redirect()->away($frontendUrl . '/login?error=google_failed');
+            return response()
+                ->view('auth.callback', [
+                    'error' => 'google_failed'
+                ])
+                ->header('Content-Type', 'text/html');
         }
 
     }
