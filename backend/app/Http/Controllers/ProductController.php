@@ -224,16 +224,9 @@ class ProductController extends Controller
      *     @OA\Response(response=422, description="Lỗi validation")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'base_price' => 'required|numeric|min:0',
-            'sale_price' => 'nullable|numeric|min:0',
-            'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-        ]);
+        $validatedData = $request->validated();
 
         $validatedData['slug'] = Str::slug($request->name) . '-' . time();
 
@@ -276,21 +269,14 @@ class ProductController extends Controller
      *     @OA\Response(response=200, description="Cập nhật thành công")
      * )
      */
-    public function update(Request $request, $id)
+    public function update(UpdateProductRequest $request, $id)
     {
         $product = Product::find($id);
         if (!$product) {
             return response()->json(['success' => false, 'message' => 'Sản phẩm không tồn tại'], 404);
         }
 
-        $validatedData = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-            'base_price' => 'sometimes|numeric|min:0',
-            'sale_price' => 'nullable|numeric|min:0',
-            'category_id' => 'sometimes|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-        ]);
+        $validatedData = $request->validated();
 
         if ($request->hasFile('image')) {
             if ($product->image_url) {
