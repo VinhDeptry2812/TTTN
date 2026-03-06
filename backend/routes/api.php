@@ -4,7 +4,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProductVariantController;
-use App\Models\Category;
+use App\Http\Controllers\UserAddressController;
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
@@ -28,7 +28,12 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/update-profile', [AuthController::class, 'updateProfile']);
 
-
+    // Quản lý địa chỉ
+    Route::get('user/addresses', [UserAddressController::class, 'index']);
+    Route::post('user/addresses', [UserAddressController::class, 'store']);
+    Route::put('user/addresses/{id}', [UserAddressController::class, 'update']);
+    Route::delete('user/addresses/{id}', [UserAddressController::class, 'destroy']);
+    Route::patch('user/addresses/{id}/set-default', [UserAddressController::class, 'setDefault']);
 });
 
 // Public route cho Admin

@@ -1472,6 +1472,227 @@
                 ]
             }
         },
+        "/user/addresses": {
+            "get": {
+                "tags": [
+                    "User Addresses"
+                ],
+                "summary": "Lấy danh sách địa chỉ của người dùng đang đăng nhập",
+                "operationId": "b12203fbec62fe2b60b745e1665694a2",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/UserAddress"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "User Addresses"
+                ],
+                "summary": "Thêm địa chỉ mới",
+                "operationId": "efc79a1a4844bd7aaa77e35edf006d8c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserAddress"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/user/addresses/{id}": {
+            "put": {
+                "tags": [
+                    "User Addresses"
+                ],
+                "summary": "Cập nhật địa chỉ (User)",
+                "description": "Cập nhật thông tin địa chỉ của người dùng đang đăng nhập. Nếu đặt is_default=true, các địa chỉ khác sẽ tự động bỏ mặc định.",
+                "operationId": "f17ce468516f6a4c353d2a52e1f582ae",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của địa chỉ cần cập nhật",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "receiver_name": {
+                                        "type": "string",
+                                        "example": "Nguyễn Văn A"
+                                    },
+                                    "receiver_phone": {
+                                        "type": "string",
+                                        "example": "0987654321"
+                                    },
+                                    "province_id": {
+                                        "type": "integer",
+                                        "example": 202
+                                    },
+                                    "district_id": {
+                                        "type": "integer",
+                                        "example": 111
+                                    },
+                                    "ward_id": {
+                                        "type": "integer",
+                                        "example": 333
+                                    },
+                                    "address_detail": {
+                                        "type": "string",
+                                        "example": "Số 123, Đường ABC"
+                                    },
+                                    "is_default": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "home",
+                                            "office",
+                                            "other"
+                                        ],
+                                        "example": "home"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật địa chỉ thành công"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserAddress"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy địa chỉ"
+                    },
+                    "422": {
+                        "description": "Lỗi validation dữ liệu"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "User Addresses"
+                ],
+                "summary": "Xóa địa chỉ",
+                "operationId": "8079538606c113e6bc2297ae602f2e09",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/user/addresses/{id}/set-default": {
+            "patch": {
+                "tags": [
+                    "User Addresses"
+                ],
+                "summary": "Đặt làm địa chỉ mặc định",
+                "operationId": "3148a60493e260fd2d48459131497268",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/users": {
             "get": {
                 "tags": [
@@ -1916,6 +2137,79 @@
                     }
                 },
                 "type": "object"
+            },
+            "UserAddress": {
+                "title": "UserAddress",
+                "description": "Mô hình địa chỉ người dùng",
+                "properties": {
+                    "id": {
+                        "description": "ID địa chỉ",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "description": "ID người dùng",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "receiver_name": {
+                        "description": "Tên người nhận",
+                        "type": "string",
+                        "example": "Nguyễn Văn A"
+                    },
+                    "receiver_phone": {
+                        "description": "Số điện thoại người nhận",
+                        "type": "string",
+                        "example": "0987654321"
+                    },
+                    "province_id": {
+                        "description": "ID Tỉnh/Thành phố",
+                        "type": "integer",
+                        "example": 202,
+                        "nullable": true
+                    },
+                    "district_id": {
+                        "description": "ID Quận/Huyện",
+                        "type": "integer",
+                        "example": 111,
+                        "nullable": true
+                    },
+                    "ward_id": {
+                        "description": "ID Phường/Xã",
+                        "type": "integer",
+                        "example": 333,
+                        "nullable": true
+                    },
+                    "address_detail": {
+                        "description": "Địa chỉ cụ thể",
+                        "type": "string",
+                        "example": "Số 123, Đường ABC"
+                    },
+                    "is_default": {
+                        "description": "Có phải địa chỉ mặc định không",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "type": {
+                        "description": "Loại địa chỉ",
+                        "type": "string",
+                        "enum": [
+                            "home",
+                            "office",
+                            "other"
+                        ],
+                        "example": "home"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -1946,6 +2240,10 @@
         {
             "name": "Product Variants",
             "description": "Product Variants"
+        },
+        {
+            "name": "User Addresses",
+            "description": "User Addresses"
         },
         {
             "name": "Admin User Management",
