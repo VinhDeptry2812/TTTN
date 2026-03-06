@@ -28,19 +28,48 @@ class ProductController extends Controller
     /**
      * @OA\Get(
      *     path="/products",
-     *     summary="Lấy danh sách sản phẩm (Infinite Scrolling)",
+     *     summary="Lấy danh sách sản phẩm (Hỗ trợ Lọc, Sắp xếp & Infinite Scrolling)",
+     *     description="API trả về danh sách sản phẩm với cursor-based pagination. Hỗ trợ lọc theo danh mục, khoảng giá và sắp xếp theo nhiều tiêu chí.",
      *     tags={"Products"},
      *     @OA\Parameter(
-     *         name="limit",
+     *         name="category_id",
      *         in="query",
-     *         description="Số lượng sản phẩm mỗi trang (mặc định 12)",
+     *         description="Lọc theo ID danh mục sản phẩm",
      *         required=false,
-     *         @OA\Schema(type="integer", default=12)
+     *         @OA\Schema(type="integer", example=3)
+     *     ),
+     *     @OA\Parameter(
+     *         name="min_price",
+     *         in="query",
+     *         description="Giá tối thiểu (lọc base_price >= giá trị này)",
+     *         required=false,
+     *         @OA\Schema(type="number", example=1000000)
+     *     ),
+     *     @OA\Parameter(
+     *         name="max_price",
+     *         in="query",
+     *         description="Giá tối đa (lọc base_price <= giá trị này)",
+     *         required=false,
+     *         @OA\Schema(type="number", example=5000000)
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         description="Trường sắp xếp. Chỉ chấp nhận: base_price, name, created_at (mặc định: created_at)",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"base_price", "name", "created_at"}, default="created_at")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         description="Thứ tự sắp xếp: asc (tăng dần) hoặc desc (giảm dần, mặc định)",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"asc", "desc"}, default="desc")
      *     ),
      *     @OA\Parameter(
      *         name="cursor",
      *         in="query",
-     *         description="Mã cursor để đánh dấu vị trí trang tiếp theo (Lấy từ next_page_url của response trước)",
+     *         description="Mã cursor để lấy trang tiếp theo (lấy từ next_page_url của response trước)",
      *         required=false,
      *         @OA\Schema(type="string")
      *     ),
@@ -59,9 +88,40 @@ class ProductController extends Controller
      *     )
      * )
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with('category')->cursorPaginate(12);
+        $query = Product::with('category')->where('is_active', true);
+
+        // Lọc theo danh mục
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        // Lọc theo khoảng giá
+        if ($request->filled('min_price')) {
+            $query->where('base_price', '>=', $request->min_price);
+        }
+        if ($request->filled('max_price')) {
+            $query->where('base_price', '<=', $request->max_price);
+        }
+
+        // Sắp xếp
+        $sortBy = $request->input('sort_by', 'created_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $allowedSorts = ['base_price', 'name', 'created_at'];
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
+        }
+
+        // Luôn thêm orderBy id để cursor pagination không bỏ sót dữ liệu
+        // khi có nhiều sản phẩm cùng giá hoặc cùng tên
+        $query->orderBy('id');
+
+        $products = $query->cursorPaginate(12);
+
+        // Giữ nguyên filter params trong next_page_url để scroll tiếp không mất filter
+        $products->appends($request->only(['category_id', 'min_price', 'max_price', 'sort_by', 'sort_order']));
+
         return response()->json($products);
     }
 

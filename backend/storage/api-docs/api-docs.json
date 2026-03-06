@@ -544,23 +544,73 @@
                 "tags": [
                     "Products"
                 ],
-                "summary": "Lấy danh sách sản phẩm (Infinite Scrolling)",
+                "summary": "Lấy danh sách sản phẩm (Hỗ trợ Lọc, Sắp xếp & Infinite Scrolling)",
+                "description": "API trả về danh sách sản phẩm với cursor-based pagination. Hỗ trợ lọc theo danh mục, khoảng giá và sắp xếp theo nhiều tiêu chí.",
                 "operationId": "c1ff6f862214e1896c59cfe0491ce0e8",
                 "parameters": [
                     {
-                        "name": "limit",
+                        "name": "category_id",
                         "in": "query",
-                        "description": "Số lượng sản phẩm mỗi trang (mặc định 12)",
+                        "description": "Lọc theo ID danh mục sản phẩm",
                         "required": false,
                         "schema": {
                             "type": "integer",
-                            "default": 12
+                            "example": 3
+                        }
+                    },
+                    {
+                        "name": "min_price",
+                        "in": "query",
+                        "description": "Giá tối thiểu (lọc base_price >= giá trị này)",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 1000000
+                        }
+                    },
+                    {
+                        "name": "max_price",
+                        "in": "query",
+                        "description": "Giá tối đa (lọc base_price <= giá trị này)",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 5000000
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Trường sắp xếp. Chỉ chấp nhận: base_price, name, created_at (mặc định: created_at)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "created_at",
+                            "enum": [
+                                "base_price",
+                                "name",
+                                "created_at"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "description": "Thứ tự sắp xếp: asc (tăng dần) hoặc desc (giảm dần, mặc định)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
                         }
                     },
                     {
                         "name": "cursor",
                         "in": "query",
-                        "description": "Mã cursor để đánh dấu vị trí trang tiếp theo (Lấy từ next_page_url của response trước)",
+                        "description": "Mã cursor để lấy trang tiếp theo (lấy từ next_page_url của response trước)",
                         "required": false,
                         "schema": {
                             "type": "string"

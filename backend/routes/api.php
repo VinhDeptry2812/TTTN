@@ -4,12 +4,17 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProductVariantController;
-use Illuminate\Support\Facades\Route;
+use App\Models\Category;
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 // Biến thể: lấy danh sách variant (public - không cần đăng nhập)
 Route::get('/products/{productId}/variants', [ProductVariantController::class, 'index']);
+
+// Danh mục sản phẩm (public)
+Route::get('/categories', function () {
+    return response()->json(Category::where('is_active', true)->orderBy('sort_order')->get());
+});
 
 
 // Public routes (không cần token)
