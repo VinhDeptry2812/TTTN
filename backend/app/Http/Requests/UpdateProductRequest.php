@@ -48,13 +48,23 @@ class UpdateProductRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Tên sản phẩm không được để trống khi cập nhật.',
-            'name.unique' => 'Tên sản phẩm này đã được sử dụng.',
-            'category_id.exists' => 'Danh mục không hợp lệ.',
-            'base_price.numeric' => 'Giá sản phẩm phải là số.',
-            'sku.unique' => 'Mã SKU này đã được sử dụng.',
-            'image.image' => 'File tải lên phải là một hình ảnh.',
-            'image.max' => 'Ảnh không được vượt quá 2MB.',
+            'required' => ':attribute không được để trống khi cập nhật.',
+            'unique' => ':attribute này đã được sử dụng.',
+            'exists' => ':attribute không hợp lệ.',
+            'numeric' => ':attribute phải là số.',
+            'image' => ':attribute phải là một hình ảnh.',
+            'max' => ':attribute không được vượt quá :max.',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'name' => 'Tên sản phẩm',
+            'category_id' => 'Danh mục',
+            'base_price' => 'Giá sản phẩm',
+            'sku' => 'Mã SKU',
+            'image' => 'Ảnh sản phẩm',
         ];
     }
 }

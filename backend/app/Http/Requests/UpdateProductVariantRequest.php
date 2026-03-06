@@ -4,6 +4,9 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+
 class UpdateProductVariantRequest extends FormRequest
 {
     public function authorize(): bool
@@ -33,6 +36,24 @@ class UpdateProductVariantRequest extends FormRequest
         ];
     }
 
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Lỗi validation dữ liệu',
+            'errors' => $validator->errors()
+        ], 422));
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'sku' => 'Mã SKU biến thể',
+            'price' => 'Giá biến thể',
+            'stock_quantity' => 'Số lượng tồn kho',
+            'image' => 'Ảnh biến thể',
+        ];
+    }
     public function messages(): array
     {
         return [

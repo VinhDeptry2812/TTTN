@@ -4,11 +4,23 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+
 class StoreUserAddressRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Lỗi validation dữ liệu',
+            'errors' => $validator->errors()
+        ], 422));
     }
 
     public function rules(): array
@@ -29,7 +41,8 @@ class StoreUserAddressRequest extends FormRequest
     {
         return [
             'required' => ':attribute không được để trống.',
-            'in' => ':attribute không hợp lệ (home, office, other).',
+            'in' => ':attribute không hợp lệ.',
+            'max' => ':attribute không được vượt quá :max ký tự.',
         ];
     }
 

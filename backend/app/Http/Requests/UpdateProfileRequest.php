@@ -4,6 +4,9 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+
 class UpdateProfileRequest extends FormRequest
 {
     public function authorize(): bool
@@ -14,11 +17,20 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'string|max:100',
+            'name' => 'sometimes|required|string|max:100',
             'phone' => 'nullable|string|max:15',
             'gender' => 'nullable|in:male,female,other',
             'birthday' => 'nullable|date',
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Lỗi validation dữ liệu',
+            'errors' => $validator->errors()
+        ], 422));
     }
 
     public function messages(): array
