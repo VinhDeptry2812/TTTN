@@ -4,12 +4,17 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProductVariantController;
-use Illuminate\Support\Facades\Route;
+use App\Models\Category;
+
+use App\Http\Controllers\CategoryController;
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 // Biến thể: lấy danh sách variant (public - không cần đăng nhập)
 Route::get('/products/{productId}/variants', [ProductVariantController::class, 'index']);
+
+// Danh mục sản phẩm (public)
+Route::get('/categories', [CategoryController::class, 'index']);
 
 
 // Public routes (không cần token)
@@ -40,6 +45,12 @@ Route::middleware('auth:admin-api')->group(function () {
     Route::post('/products/{productId}/variants', [ProductVariantController::class, 'store']);
     Route::match(['POST', 'PUT'], '/products/{productId}/variants/{variantId}', [ProductVariantController::class, 'update']);
     Route::delete('/products/{productId}/variants/{variantId}', [ProductVariantController::class, 'destroy']);
+
+    // Categories (Admin)
+    Route::post('/categories', [CategoryController::class, 'store']);
+    Route::get('/categories/{id}', [CategoryController::class, 'show']);
+    Route::match(['POST', 'PUT'], '/categories/{id}', [CategoryController::class, 'update']);
+    Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 
     // Nếu muốn check role cụ thể (superadmin mới được vào)
     Route::middleware('is_superadmin')->group(function () {

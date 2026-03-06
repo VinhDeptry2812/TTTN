@@ -539,28 +539,387 @@
                 }
             }
         },
+        "/categories": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Lấy danh sách danh mục",
+                "description": "API trả về danh sách danh mục. Có thể lấy theo cấu trúc cây hoặc danh sách phẳng. Mặc định chỉ lấy danh mục đang hoạt động.",
+                "operationId": "ead5fb1cf2a7453acb2e37928a1b1eaf",
+                "parameters": [
+                    {
+                        "name": "tree",
+                        "in": "query",
+                        "description": "Nếu bằng 1, trả về cấu trúc cây (lồng nhau)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "enum": [
+                                0,
+                                1
+                            ]
+                        }
+                    },
+                    {
+                        "name": "all",
+                        "in": "query",
+                        "description": "Nếu bằng 1, lấy cả danh mục bị ẩn (Admin dùng)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "enum": [
+                                0,
+                                1
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Category"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Tạo danh mục mới (Admin)",
+                "operationId": "bb02f0320882db37f99574196577e446",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Tên danh mục",
+                                        "type": "string",
+                                        "example": "Danh mục mới"
+                                    },
+                                    "parent_id": {
+                                        "description": "ID danh mục cha (để trống hoặc 0 nếu là gốc)",
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "image": {
+                                        "description": "File ảnh danh mục",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "description": {
+                                        "description": "Mô tả ngắn",
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "description": "Trạng thái (1: Hiện, 0: Ẩn)",
+                                        "type": "integer",
+                                        "default": 1,
+                                        "enum": [
+                                            0,
+                                            1
+                                        ]
+                                    },
+                                    "sort_order": {
+                                        "description": "Thứ tự hiển thị (càng nhỏ càng ưu tiên)",
+                                        "type": "integer",
+                                        "default": 0
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Category"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/categories/{id}": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Chi tiết danh mục",
+                "operationId": "4cdf41756315109f1efc72787db5830a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Category"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Cập nhật danh mục (Admin)",
+                "description": "Vì Laravel không hỗ trợ multipart/form-data qua PUT tốt, nên dùng POST kèm _method=PUT",
+                "operationId": "8ea50e48cbcd07043a3fd8145e99bfbd",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "_method": {
+                                        "type": "string",
+                                        "example": "PUT"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "parent_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "integer",
+                                        "enum": [
+                                            0,
+                                            1
+                                        ]
+                                    },
+                                    "sort_order": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Category"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Xóa danh mục (Admin)",
+                "operationId": "f1b8af6e84bd52b9594d98bde748ebd6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Không thể xóa vì còn sản phẩm"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/products": {
             "get": {
                 "tags": [
                     "Products"
                 ],
-                "summary": "Lấy danh sách sản phẩm (Infinite Scrolling)",
+                "summary": "Lấy danh sách sản phẩm (Hỗ trợ Lọc, Sắp xếp & Infinite Scrolling)",
+                "description": "API trả về danh sách sản phẩm với cursor-based pagination. Hỗ trợ lọc theo danh mục, khoảng giá và sắp xếp theo nhiều tiêu chí.",
                 "operationId": "c1ff6f862214e1896c59cfe0491ce0e8",
                 "parameters": [
                     {
-                        "name": "limit",
+                        "name": "category_id",
                         "in": "query",
-                        "description": "Số lượng sản phẩm mỗi trang (mặc định 12)",
+                        "description": "Lọc theo ID danh mục sản phẩm",
                         "required": false,
                         "schema": {
                             "type": "integer",
-                            "default": 12
+                            "example": 3
+                        }
+                    },
+                    {
+                        "name": "min_price",
+                        "in": "query",
+                        "description": "Giá tối thiểu (lọc base_price >= giá trị này)",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 1000000
+                        }
+                    },
+                    {
+                        "name": "max_price",
+                        "in": "query",
+                        "description": "Giá tối đa (lọc base_price <= giá trị này)",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 5000000
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Trường sắp xếp. Chỉ chấp nhận: base_price, name, created_at (mặc định: created_at)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "created_at",
+                            "enum": [
+                                "base_price",
+                                "name",
+                                "created_at"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "description": "Thứ tự sắp xếp: asc (tăng dần) hoặc desc (giảm dần, mặc định)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
                         }
                     },
                     {
                         "name": "cursor",
                         "in": "query",
-                        "description": "Mã cursor để đánh dấu vị trí trang tiếp theo (Lấy từ next_page_url của response trước)",
+                        "description": "Mã cursor để lấy trang tiếp theo (lấy từ next_page_url của response trước)",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -577,28 +936,34 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object"
+                                                "$ref": "#/components/schemas/Product"
                                             }
                                         },
                                         "path": {
+                                            "description": "URL hiện tại",
                                             "type": "string"
                                         },
                                         "per_page": {
+                                            "description": "Số lượng mỗi trang",
                                             "type": "integer"
                                         },
                                         "next_cursor": {
+                                            "description": "Cursor cho trang tiếp theo",
                                             "type": "string",
                                             "nullable": true
                                         },
                                         "next_page_url": {
+                                            "description": "Link trang tiếp theo",
                                             "type": "string",
                                             "nullable": true
                                         },
                                         "prev_cursor": {
+                                            "description": "Cursor cho trang trước",
                                             "type": "string",
                                             "nullable": true
                                         },
                                         "prev_page_url": {
+                                            "description": "Link trang trước",
                                             "type": "string",
                                             "nullable": true
                                         }
@@ -611,106 +976,54 @@
                 }
             }
         },
-        "/products/create": {
-            "post": {
+        "/products/{id}": {
+            "get": {
                 "tags": [
                     "Products"
                 ],
-                "summary": "Tạo sản phẩm mới (Admin)",
-                "operationId": "5b4712b82366a108a816402b5d526fa5",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "multipart/form-data": {
-                            "schema": {
-                                "required": [
-                                    "name",
-                                    "category_id",
-                                    "base_price",
-                                    "sku"
-                                ],
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Bàn Trà Sofa Cao Cấp"
-                                    },
-                                    "category_id": {
-                                        "type": "integer",
-                                        "example": 5
-                                    },
-                                    "base_price": {
-                                        "type": "number",
-                                        "example": 2500000
-                                    },
-                                    "sale_price": {
-                                        "type": "number",
-                                        "example": 2000000
-                                    },
-                                    "sku": {
-                                        "type": "string",
-                                        "example": "TAB-SOF-001"
-                                    },
-                                    "material": {
-                                        "type": "string",
-                                        "example": "Gỗ Óc Chó"
-                                    },
-                                    "brand": {
-                                        "type": "string",
-                                        "example": "Luxe Furniture"
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "example": "Mô tả abc xyz"
-                                    },
-                                    "is_active": {
-                                        "type": "integer",
-                                        "enum": [
-                                            0,
-                                            1
-                                        ],
-                                        "example": 1
-                                    },
-                                    "is_featured": {
-                                        "type": "integer",
-                                        "enum": [
-                                            0,
-                                            1
-                                        ],
-                                        "example": 1
-                                    },
-                                    "image": {
-                                        "description": "File ảnh",
-                                        "type": "string",
-                                        "format": "binary"
-                                    }
-                                },
-                                "type": "object"
-                            }
+                "summary": "Chi tiết sản phẩm",
+                "operationId": "b46f4aa73232d0368eee698a082342a4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
                         }
                     }
-                },
+                ],
                 "responses": {
-                    "201": {
-                        "description": "Tạo thành công"
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Product"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
-                    "422": {
-                        "description": "Dữ liệu không hợp lệ"
+                    "404": {
+                        "description": "Sản phẩm không tồn tại"
                     }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/products/{id}": {
+                }
+            },
             "post": {
                 "tags": [
                     "Products"
                 ],
                 "summary": "Cập nhật sản phẩm (Admin)",
-                "description": "[FE NOTE] API này thực chất là PUT nhưng phải dùng method POST để hỗ trợ upload file (multipart/form-data). Để Laravel hiểu đây là PUT, PHẢI thêm field ẩn `_method = PUT` vào FormData khi gọi từ Frontend (React/Axios). Không cần làm gì thêm ở phía Backend.",
+                "description": "Vì Laravel không hỗ trợ file upload qua PUT trực tiếp một cách tốt nhất, hãy dùng POST kèm tham số _method=PUT",
                 "operationId": "1c52fc58e33d71677ba74cb346470913",
                 "parameters": [
                     {
@@ -729,48 +1042,22 @@
                             "schema": {
                                 "properties": {
                                     "_method": {
-                                        "description": "[BẮT BUỘC] Luôn điền 'PUT' vào đây. Đây là cơ chế Method Spoofing của Laravel.",
                                         "type": "string",
                                         "example": "PUT"
                                     },
                                     "name": {
-                                        "type": "string",
-                                        "example": "Sofa Mới"
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
                                     },
                                     "base_price": {
-                                        "type": "number",
-                                        "example": 2500000
+                                        "type": "number"
                                     },
-                                    "sale_price": {
-                                        "type": "number",
-                                        "example": 1800000
-                                    },
-                                    "material": {
-                                        "type": "string",
-                                        "example": "Gỗ sồi"
-                                    },
-                                    "brand": {
-                                        "type": "string",
-                                        "example": "LuxHome"
-                                    },
-                                    "is_active": {
-                                        "type": "integer",
-                                        "enum": [
-                                            0,
-                                            1
-                                        ],
-                                        "example": 1
-                                    },
-                                    "is_featured": {
-                                        "type": "integer",
-                                        "enum": [
-                                            0,
-                                            1
-                                        ],
-                                        "example": 0
+                                    "category_id": {
+                                        "type": "integer"
                                     },
                                     "image": {
-                                        "description": "[TÙY CHỌN] Ảnh mới. Nếu không gửi, ảnh cũ sẽ được giữ nguyên.",
                                         "type": "string",
                                         "format": "binary"
                                     }
@@ -783,12 +1070,6 @@
                 "responses": {
                     "200": {
                         "description": "Cập nhật thành công"
-                    },
-                    "404": {
-                        "description": "Sản phẩm không tồn tại"
-                    },
-                    "422": {
-                        "description": "Dữ liệu không hợp lệ"
                     }
                 },
                 "security": [
@@ -828,6 +1109,69 @@
                 ]
             }
         },
+        "/products/create": {
+            "post": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Tạo sản phẩm mới (Admin)",
+                "operationId": "5b4712b82366a108a816402b5d526fa5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "base_price",
+                                    "category_id"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Ghế Sofa Da Cao Cấp"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Mô tả chi tiết sản phẩm"
+                                    },
+                                    "base_price": {
+                                        "type": "number",
+                                        "example": 5000000
+                                    },
+                                    "sale_price": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 3
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo thành công"
+                    },
+                    "422": {
+                        "description": "Lỗi validation"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/products/{productId}/variants": {
             "get": {
                 "tags": [
@@ -847,7 +1191,26 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Thành công"
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ProductVariant"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "404": {
                         "description": "Sản phẩm không tồn tại"
@@ -953,7 +1316,23 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Tạo thành công"
+                        "description": "Tạo thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/ProductVariant"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "404": {
                         "description": "Sản phẩm không tồn tại"
@@ -1152,6 +1531,242 @@
                     }
                 },
                 "type": "object"
+            },
+            "Category": {
+                "title": "Category",
+                "description": "Mô hình Danh mục sản phẩm",
+                "properties": {
+                    "id": {
+                        "description": "ID duy nhất của danh mục",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Tên hiển thị của danh mục",
+                        "type": "string",
+                        "example": "Nội thất phòng khách"
+                    },
+                    "slug": {
+                        "description": "Đường dẫn thân thiện (tự động tạo từ tên + unique id)",
+                        "type": "string",
+                        "example": "noi-that-phong-khach-65e8a1"
+                    },
+                    "parent_id": {
+                        "description": "ID của danh mục cha (null nếu là danh mục gốc)",
+                        "type": "integer",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "image": {
+                        "description": "Đường dẫn ảnh danh mục (lưu trong storage)",
+                        "type": "string",
+                        "example": "categories/image.jpg",
+                        "nullable": true
+                    },
+                    "description": {
+                        "description": "Mô tả chi tiết về danh mục",
+                        "type": "string",
+                        "example": "Mô tả danh mục",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "description": "Trạng thái hiển thị (true: hiện, false: ẩn)",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "sort_order": {
+                        "description": "Thứ tự sắp xếp (số càng nhỏ càng hiện lên đầu)",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "created_at": {
+                        "description": "Ngày tạo",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "description": "Ngày cập nhật gần nhất",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Product": {
+                "title": "Product",
+                "description": "Mô hình Sản phẩm",
+                "properties": {
+                    "id": {
+                        "description": "ID duy nhất của sản phẩm",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "category_id": {
+                        "description": "ID của danh mục thuộc về",
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "name": {
+                        "description": "Tên sản phẩm",
+                        "type": "string",
+                        "example": "Ghế Sofa Da Cao Cấp"
+                    },
+                    "slug": {
+                        "description": "Đường dẫn thân thiện (unique)",
+                        "type": "string",
+                        "example": "ghe-sofa-da-cao-cap-123456"
+                    },
+                    "sku": {
+                        "description": "Mã kho hàng (Stock Keeping Unit)",
+                        "type": "string",
+                        "example": "SOFA-001"
+                    },
+                    "description": {
+                        "description": "Mô tả chi tiết sản phẩm",
+                        "type": "string"
+                    },
+                    "material": {
+                        "description": "Chất liệu cấu thành",
+                        "type": "string",
+                        "example": "Da bò, Gỗ sồi"
+                    },
+                    "brand": {
+                        "description": "Thương hiệu",
+                        "type": "string",
+                        "example": "Luxe Interiors"
+                    },
+                    "base_price": {
+                        "description": "Giá gốc niêm yết",
+                        "type": "number",
+                        "example": 5000000
+                    },
+                    "sale_price": {
+                        "description": "Giá khuyến mãi (nếu có)",
+                        "type": "number",
+                        "example": 4500000,
+                        "nullable": true
+                    },
+                    "image_url": {
+                        "description": "Đường dẫn ảnh chính",
+                        "type": "string"
+                    },
+                    "is_active": {
+                        "description": "Trạng thái kinh doanh (hiện/ẩn)",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "is_featured": {
+                        "description": "Sản phẩm nổi bật/xu hướng",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "category": {
+                        "$ref": "#/components/schemas/Category"
+                    },
+                    "variants": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProductVariant"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ProductVariant": {
+                "title": "ProductVariant",
+                "description": "Mô hình Biến thể sản phẩm",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "product_id": {
+                        "description": "ID của sản phẩm gốc",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "sku": {
+                        "description": "Mã kho riêng cho biến thể",
+                        "type": "string",
+                        "example": "SOFA-BRN-2.8M"
+                    },
+                    "color": {
+                        "description": "Màu sắc",
+                        "type": "string",
+                        "example": "Nâu cà phê",
+                        "nullable": true
+                    },
+                    "wood_type": {
+                        "description": "Loại gỗ",
+                        "type": "string",
+                        "example": "Gỗ sồi",
+                        "nullable": true
+                    },
+                    "upholstery": {
+                        "description": "Chất liệu vải bọc/da",
+                        "type": "string",
+                        "example": "Da bò thật",
+                        "nullable": true
+                    },
+                    "finish": {
+                        "description": "Kiểu hoàn thiện bề mặt",
+                        "type": "string",
+                        "example": "Walnut",
+                        "nullable": true
+                    },
+                    "size": {
+                        "description": "Kích thước tổng quát",
+                        "type": "string",
+                        "example": "2.8m x 1.7m",
+                        "nullable": true
+                    },
+                    "width_cm": {
+                        "type": "number",
+                        "example": 280,
+                        "nullable": true
+                    },
+                    "depth_cm": {
+                        "type": "number",
+                        "example": 170,
+                        "nullable": true
+                    },
+                    "height_cm": {
+                        "type": "number",
+                        "example": 85,
+                        "nullable": true
+                    },
+                    "weight_kg": {
+                        "type": "number",
+                        "example": 75.5,
+                        "nullable": true
+                    },
+                    "seat_height_cm": {
+                        "type": "string",
+                        "example": "45cm",
+                        "nullable": true
+                    },
+                    "price": {
+                        "description": "Giá riêng của biến thể này",
+                        "type": "number",
+                        "example": 22000000
+                    },
+                    "stock_quantity": {
+                        "description": "Số lượng tồn kho",
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "image_url": {
+                        "description": "Ảnh riêng của biến thể",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "is_available": {
+                        "description": "Trạng thái còn hàng (true/false)",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -1170,6 +1785,10 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Categories",
+            "description": "Categories"
         },
         {
             "name": "Products",
