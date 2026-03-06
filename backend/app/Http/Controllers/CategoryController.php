@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -122,7 +124,7 @@ class CategoryController extends Controller
      *     @OA\Response(response=422, description="Dữ liệu không hợp lệ")
      * )
      */
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
         if ($request->has('parent_id')) {
             $val = $request->parent_id;
@@ -131,14 +133,7 @@ class CategoryController extends Controller
             }
         }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'parent_id' => 'nullable|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer'
-        ]);
+        $validated = $request->validated();
 
         $validated['slug'] = Str::slug($validated['name']) . '-' . uniqid();
 
@@ -216,7 +211,7 @@ class CategoryController extends Controller
      *     )
      * )
      */
-    public function update(Request $request, $id)
+    public function update(UpdateCategoryRequest $request, $id)
     {
         if ($request->has('parent_id')) {
             $val = $request->parent_id;
@@ -227,23 +222,7 @@ class CategoryController extends Controller
 
         $category = Category::findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'parent_id' => [
-                'nullable',
-                'exists:categories,id',
-                // Không được lấy chính mình hoặc con của mình làm cha (để tránh vòng lặp)
-                function ($attribute, $value, $fail) use ($id) {
-                    if ($value == $id) {
-                        $fail('Không thể chọn chính danh mục này làm danh mục cha.');
-                    }
-                },
-            ],
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer'
-        ]);
+        $validated = $request->validated();
 
         $validated['slug'] = Str::slug($validated['name']) . '-' . substr($id, -4);
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductVariantController;
 use App\Models\Category;
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\UserController;
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -51,6 +52,12 @@ Route::middleware('auth:admin-api')->group(function () {
     Route::get('/categories/{id}', [CategoryController::class, 'show']);
     Route::match(['POST', 'PUT'], '/categories/{id}', [CategoryController::class, 'update']);
     Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+
+    // User Management (Admin)
+    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/{id}', [UserController::class, 'show']);
+    Route::put('/users/{id}', [UserController::class, 'update']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
     // Nếu muốn check role cụ thể (superadmin mới được vào)
     Route::middleware('is_superadmin')->group(function () {

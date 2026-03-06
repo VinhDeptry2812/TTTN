@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ResetPasswordMail;
 use Laravel\Socialite\Facades\Socialite;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Requests\ForgotPasswordRequest;
+use App\Http\Requests\ResetPasswordRequest;
 
 
 
@@ -54,37 +59,14 @@ class AuthController extends Controller
      * )
      */
     // SIGNUP
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email:rfc,dns|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-        ], [
-            'required' => ':attribute không được để trống.',
-            'email' => ':attribute không đúng định dạng.',
-            'min' => ':attribute phải có ít nhất :min ký tự.',
-            'unique' => ':attribute đã tồn tại trong hệ thống.',
-        ], [
-            // Tên hiển thị thay thế cho tên field
-            'name' => 'Họ tên',
-            'email' => 'Email',
-            'password' => 'Mật khẩu',
-        ]);
-
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation lỗi',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+        $validatedData = $request->validated();
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
         ]);
 
         $token = Auth::login($user);
@@ -116,26 +98,8 @@ class AuthController extends Controller
      * )
      */
     // LOGIN
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email:rfc,dns',
-            'password' => 'required|string|min:6',
-        ], [
-            'required' => ':attribute không được để trống.',
-            'email' => ':attribute không đúng định dạng.',
-            'min' => ':attribute phải có ít nhất :min ký tự.',
-        ], [
-            'email' => 'Email',
-            'password' => 'Mật khẩu',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation lỗi',
-                'errors' => $validator->errors()
-            ], 422);
-        }
         $credentials = $request->only('email', 'password');
 
         if (!$token = Auth::attempt($credentials)) {
@@ -145,11 +109,20 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $user = Auth::user();
+        if (!$user->is_active) {
+            Auth::logout();
+            return response()->json([
+                'success' => false,
+                'message' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.'
+            ], 403);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Đăng nhập thành công',
             'token' => $token,
-            'user' => Auth::user()
+            'user' => $user
         ]);
     }
     /**
@@ -243,21 +216,8 @@ class AuthController extends Controller
     // ========================
     // QUÊN MẬT KHẨU - gửi mail
     // ========================
-    public function forgotPassword(Request $request)
+    public function forgotPassword(ForgotPasswordRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email:rfc,dns|exists:users,email',
-        ], [
-            'email.required' => 'Vui lòng nhập email.',
-            'email.email' => 'Email không hợp lệ.',
-            'email.exists' => 'Email không tồn tại trong hệ thống.',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()->first()
-            ], 422);
-        }
         // Tạo token ngẫu nhiên
         $token = Str::random(64);
         // Lưu vào DB (xóa cũ nếu có)
@@ -331,23 +291,8 @@ class AuthController extends Controller
     // ========================
     // ĐẶT LẠI MẬT KHẨU MỚI
     // ========================
-    public function resetPassword(Request $request)
+    public function resetPassword(ResetPasswordRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
-            'token' => 'required|string',
-            'password' => 'required|string|min:6|confirmed',
-        ], [
-            'email.exists' => 'Email không tồn tại.',
-            'password.min' => 'Mật khẩu phải có ít nhất :min ký tự.',
-            'password.confirmed' => 'Xác nhận mật khẩu không khớp.',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
         // Kiểm tra token có hợp lệ không
         $record = DB::table('password_reset_tokens')
             ->where('email', $request->email)
@@ -406,7 +351,7 @@ class AuthController extends Controller
      *     @OA\Response(response=422, description="Validation lỗi")
      * )
      */
-    public function updateProfile(Request $request)
+    public function updateProfile(UpdateProfileRequest $request)
     {
         $user = Auth::user();
 
@@ -417,31 +362,8 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'string|max:100',
-            'phone' => 'nullable|string|max:15',
-            'gender' => 'nullable|in:male,female,other',
-            'birthday' => 'nullable|date',
-
-        ], [
-            'in' => 'Giới tính không hợp lệ.',
-            'date' => 'Ngày sinh không đúng định dạng ngày tháng.',
-            'max' => ':attribute quá dài.',
-        ], [
-            'name' => 'Họ tên',
-            'phone' => 'Số điện thoại',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation lỗi',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
         // Cập nhật thông tin (chỉ lấy các trường được gửi lên)
-        $data = $request->only(['name', 'phone', 'gender', 'birthday']);
+        $data = $request->validated();
 
         // Hiện tại dùng JWT, Auth::user() trả về model User của chúng ta
         $user->update($data);
