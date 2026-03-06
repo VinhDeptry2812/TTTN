@@ -90,11 +90,26 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('category')->where('is_active', true);
+        $query = Product::with('category');
+
+        // Admin gửi all=true → không lọc is_active, trả hết
+        // FE public mặc định chỉ hiển thị sản phẩm đang bán
+        if (!$request->boolean('all')) {
+            $query->where('is_active', true);
+        }
 
         // Lọc theo danh mục
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
+        }
+
+        // Tìm kiếm theo tên hoặc SKU
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%");
+            });
         }
 
         // Lọc theo khoảng giá
@@ -113,16 +128,49 @@ class ProductController extends Controller
             $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
         }
 
+        // Admin: phân trang truyền thống (10 SP/trang), hiển thị cả SP ẩn
+        if ($request->boolean('all')) {
+            $products = $query->orderBy('id')->paginate(10);
+            $products->appends($request->only(['category_id', 'min_price', 'max_price', 'sort_by', 'sort_order', 'all']));
+            return response()->json($products);
+        }
+
         // Luôn thêm orderBy id để cursor pagination không bỏ sót dữ liệu
-        // khi có nhiều sản phẩm cùng giá hoặc cùng tên
         $query->orderBy('id');
 
         $products = $query->cursorPaginate(12);
 
-        // Giữ nguyên filter params trong next_page_url để scroll tiếp không mất filter
+        // Giữ nguyên filter params trong next_page_url
         $products->appends($request->only(['category_id', 'min_price', 'max_price', 'sort_by', 'sort_order']));
 
         return response()->json($products);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/products/{id}",
+     *     summary="Lấy chi tiết sản phẩm theo ID",
+     *     tags={"Products"},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Thành công"),
+     *     @OA\Response(response=404, description="Sản phẩm không tồn tại")
+     * )
+     */
+    public function show($id)
+    {
+        $product = Product::with(['category', 'variants'])->find($id);
+
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sản phẩm không tồn tại'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $product
+        ]);
     }
 
     public function getUsers()
