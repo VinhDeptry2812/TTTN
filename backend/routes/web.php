@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\ProductController;
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [ProductController::class, 'getUsers']);
+Route::get('/', [AuthController::class, 'getUsers']);
