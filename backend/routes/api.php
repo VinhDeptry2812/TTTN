@@ -47,11 +47,7 @@ Route::middleware('auth:admin-api')->group(function () {
 
     // --- Nhóm quyền: Chỉ Superadmin ---
     Route::middleware('role.admin:superadmin')->group(function () {
-        // Quản lý User (Khách hàng)
-        Route::get('/users', [UserController::class, 'index']);
-        Route::get('/users/{id}', [UserController::class, 'show']);
-        Route::put('/users/{id}', [UserController::class, 'update']);
-        Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
 
         // Quản lý Staff (Nhân viên/Admins)
         Route::get('/admin/staff', [AdminController::class, 'index']);
@@ -88,6 +84,12 @@ Route::middleware('auth:admin-api')->group(function () {
 
     // Các route khác nếu có...
 });
+
+// Quản lý User (Khách hàng)
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
+Route::put('/users/{id}', [UserController::class, 'update']);
+Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
 
 
