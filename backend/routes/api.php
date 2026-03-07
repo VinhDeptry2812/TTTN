@@ -87,6 +87,7 @@ Route::middleware('auth:admin-api')->group(function () {
 
 // Quản lý User (Khách hàng)
 Route::get('/users', [UserController::class, 'index']);
+Route::post('/users', [UserController::class, 'store']);
 Route::get('/users/{id}', [UserController::class, 'show']);
 Route::put('/users/{id}', [UserController::class, 'update']);
 Route::delete('/users/{id}', [UserController::class, 'destroy']);
@@ -99,6 +100,8 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
 // Link này là callback từ Google trả về
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+Route::get('/auth/facebook', [AuthController::class, 'redirectToFacebook']);
+Route::get('/auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 

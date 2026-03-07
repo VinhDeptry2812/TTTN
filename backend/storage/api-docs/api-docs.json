@@ -747,6 +747,34 @@
                 }
             }
         },
+        "/auth/facebook": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Chuyển hướng sang trang đăng nhập Facebook",
+                "operationId": "d39f05ad906f422b2bd11d17817e616a",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to Facebook OAuth"
+                    }
+                }
+            }
+        },
+        "/auth/facebook/callback": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Xử lý callback từ Facebook",
+                "operationId": "848b6efd93189176b0256949087a84c4",
+                "responses": {
+                    "302": {
+                        "description": "Redirect về Frontend kèm token hoặc lỗi"
+                    }
+                }
+            }
+        },
         "/categories": {
             "get": {
                 "tags": [
@@ -1946,6 +1974,82 @@
                     },
                     "403": {
                         "description": "Không có quyền truy cập (Yêu cầu superadmin)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin User Management"
+                ],
+                "summary": "Thêm người dùng mới (Yêu cầu: superadmin)",
+                "operationId": "a1fce870c566eb5fc0cf3178ec5d2fed",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Nguyen Van A"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "nguyenvana@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "123456"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "0123456789"
+                                    },
+                                    "gender": {
+                                        "type": "string",
+                                        "enum": [
+                                            "male",
+                                            "female",
+                                            "other"
+                                        ],
+                                        "example": "male"
+                                    },
+                                    "birthday": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "1990-01-01"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Thêm thành công"
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập (Yêu cầu superadmin)"
+                    },
+                    "422": {
+                        "description": "Lỗi validation"
                     }
                 },
                 "security": [
