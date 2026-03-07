@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StoreProductRequest extends FormRequest
 {
@@ -33,17 +35,23 @@ class StoreProductRequest extends FormRequest
             'description' => 'nullable|string',
             // Rule quan trọng cho File ảnh
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'is_active' => 'nullable|boolean',
-            'is_featured' => 'nullable|boolean',
+            'is_active' => 'boolean',
+            'is_featured' => 'boolean',
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Lỗi validation dữ liệu',
+            'errors' => $validator->errors()
+        ], 422));
     }
 
     public function messages(): array
     {
         return [
-            'name.required' => 'Tên sản phẩm không được để trống.',
-            'name.unique' => 'Tên sản phẩm này đã tồn tại.',
-            'category_id.required' => 'Chưa chọn danh mục sản phẩm.',
             'category_id.exists' => 'Danh mục đã chọn không hợp lệ.',
             'base_price.required' => 'Giá sản phẩm không được để trống.',
             'base_price.numeric' => 'Giá sản phẩm phải là số.',

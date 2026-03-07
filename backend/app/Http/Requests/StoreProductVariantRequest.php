@@ -4,6 +4,9 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+
 class StoreProductVariantRequest extends FormRequest
 {
     public function authorize(): bool
@@ -29,6 +32,25 @@ class StoreProductVariantRequest extends FormRequest
             'seat_height_cm' => 'nullable|string|max:20',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'is_available' => 'nullable|boolean',
+        ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Lỗi validation dữ liệu',
+            'errors' => $validator->errors()
+        ], 422));
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'sku' => 'Mã SKU biến thể',
+            'price' => 'Giá biến thể',
+            'stock_quantity' => 'Số lượng tồn kho',
+            'image' => 'Ảnh biến thể',
         ];
     }
 

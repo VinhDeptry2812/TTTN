@@ -1,7 +1,8 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "API WEB MÌNH",
+        "title": "API HỆ THỐNG NỘI THẤT NHÓM MÌNH",
+        "description": "Hệ thống API hỗ trợ phân quyền người dùng (RBAC). \n *     \n *     ### Danh sách Vai trò (Roles):\n *     - **superadmin**: Quyền cao nhất, quản lý toàn bộ hệ thống bao gồm cả nhân viên và khách hàng.\n *     - **admin**: Quản lý nghiệp vụ chính (Sản phẩm, Danh mục, Đơn hàng).\n *     - **staff**: Nhân viên vận hành, xem báo cáo và thực hiện các tác vụ được chỉ định.\n *     - **user**: Khách hàng (mặc định).",
         "version": "1.0.0"
     },
     "servers": [
@@ -124,6 +125,213 @@
                     },
                     "401": {
                         "description": "Chưa xác thực"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/staff": {
+            "get": {
+                "tags": [
+                    "Staff Management"
+                ],
+                "summary": "Lấy danh sách admin/nhân viên",
+                "operationId": "f3488f07388434bbe68ff61fbca1f661",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    },
+                    "401": {
+                        "description": "Chưa xác thực"
+                    },
+                    "403": {
+                        "description": "Không có quyền"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Staff Management"
+                ],
+                "summary": "Tạo admin/nhân viên mới",
+                "operationId": "cb053e32c7468bba13f4a31fc1a6e5ba",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "role"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "New Staff"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "staff@gmail.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "admin",
+                                            "staff"
+                                        ],
+                                        "example": "staff"
+                                    },
+                                    "is_active": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo thành công"
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/staff/{id}": {
+            "get": {
+                "tags": [
+                    "Staff Management"
+                ],
+                "summary": "Xem chi tiết admin/nhân viên",
+                "operationId": "790ef6b3392822c56112cae333b83281",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Staff Management"
+                ],
+                "summary": "Cập nhật admin/nhân viên",
+                "operationId": "a0e48138e18872bca67a420ca8699e40",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "role": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Staff Management"
+                ],
+                "summary": "Xóa admin/nhân viên",
+                "operationId": "b62b8c3c5ccc67b48d81e8856ccedb77",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thành công"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy"
                     }
                 },
                 "security": [
@@ -597,7 +805,7 @@
                 "tags": [
                     "Categories"
                 ],
-                "summary": "Tạo danh mục mới (Admin)",
+                "summary": "Tạo danh mục mới (Yêu cầu: superadmin, admin)",
                 "operationId": "bb02f0320882db37f99574196577e446",
                 "requestBody": {
                     "required": true,
@@ -670,6 +878,9 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Không có quyền truy cập"
+                    },
                     "422": {
                         "description": "Dữ liệu không hợp lệ"
                     }
@@ -718,7 +929,7 @@
                 "tags": [
                     "Categories"
                 ],
-                "summary": "Cập nhật danh mục (Admin)",
+                "summary": "Cập nhật danh mục (Yêu cầu: superadmin, admin)",
                 "description": "Vì Laravel không hỗ trợ multipart/form-data qua PUT tốt, nên dùng POST kèm _method=PUT",
                 "operationId": "8ea50e48cbcd07043a3fd8145e99bfbd",
                 "parameters": [
@@ -793,6 +1004,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập"
                     }
                 },
                 "security": [
@@ -805,7 +1019,7 @@
                 "tags": [
                     "Categories"
                 ],
-                "summary": "Xóa danh mục (Admin)",
+                "summary": "Xóa danh mục (Yêu cầu: superadmin, admin)",
                 "operationId": "f1b8af6e84bd52b9594d98bde748ebd6",
                 "parameters": [
                     {
@@ -836,6 +1050,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập"
                     },
                     "422": {
                         "description": "Không thể xóa vì còn sản phẩm"
@@ -1022,7 +1239,7 @@
                 "tags": [
                     "Products"
                 ],
-                "summary": "Cập nhật sản phẩm (Admin)",
+                "summary": "Cập nhật sản phẩm (Yêu cầu: superadmin, admin)",
                 "description": "Vì Laravel không hỗ trợ file upload qua PUT trực tiếp một cách tốt nhất, hãy dùng POST kèm tham số _method=PUT",
                 "operationId": "1c52fc58e33d71677ba74cb346470913",
                 "parameters": [
@@ -1070,6 +1287,9 @@
                 "responses": {
                     "200": {
                         "description": "Cập nhật thành công"
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập"
                     }
                 },
                 "security": [
@@ -1082,7 +1302,7 @@
                 "tags": [
                     "Products"
                 ],
-                "summary": "Xóa sản phẩm (Admin - Soft Delete)",
+                "summary": "Xóa sản phẩm (Yêu cầu: superadmin, admin)",
                 "operationId": "fe34b364a3f192305598b65d04d06b5d",
                 "parameters": [
                     {
@@ -1097,6 +1317,9 @@
                 "responses": {
                     "200": {
                         "description": "Xóa thành công"
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập"
                     },
                     "404": {
                         "description": "Sản phẩm không tồn tại"
@@ -1114,7 +1337,7 @@
                 "tags": [
                     "Products"
                 ],
-                "summary": "Tạo sản phẩm mới (Admin)",
+                "summary": "Tạo sản phẩm mới (Yêu cầu: superadmin, admin)",
                 "operationId": "5b4712b82366a108a816402b5d526fa5",
                 "requestBody": {
                     "required": true,
@@ -1160,6 +1383,9 @@
                 "responses": {
                     "201": {
                         "description": "Tạo thành công"
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập"
                     },
                     "422": {
                         "description": "Lỗi validation"
@@ -1472,12 +1698,233 @@
                 ]
             }
         },
+        "/user/addresses": {
+            "get": {
+                "tags": [
+                    "User Addresses"
+                ],
+                "summary": "Lấy danh sách địa chỉ của người dùng đang đăng nhập",
+                "operationId": "b12203fbec62fe2b60b745e1665694a2",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/UserAddress"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "User Addresses"
+                ],
+                "summary": "Thêm địa chỉ mới",
+                "operationId": "efc79a1a4844bd7aaa77e35edf006d8c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserAddress"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/user/addresses/{id}": {
+            "put": {
+                "tags": [
+                    "User Addresses"
+                ],
+                "summary": "Cập nhật địa chỉ (User)",
+                "description": "Cập nhật thông tin địa chỉ của người dùng đang đăng nhập. Nếu đặt is_default=true, các địa chỉ khác sẽ tự động bỏ mặc định.",
+                "operationId": "f17ce468516f6a4c353d2a52e1f582ae",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của địa chỉ cần cập nhật",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "receiver_name": {
+                                        "type": "string",
+                                        "example": "Nguyễn Văn A"
+                                    },
+                                    "receiver_phone": {
+                                        "type": "string",
+                                        "example": "0987654321"
+                                    },
+                                    "province_id": {
+                                        "type": "integer",
+                                        "example": 202
+                                    },
+                                    "district_id": {
+                                        "type": "integer",
+                                        "example": 111
+                                    },
+                                    "ward_id": {
+                                        "type": "integer",
+                                        "example": 333
+                                    },
+                                    "address_detail": {
+                                        "type": "string",
+                                        "example": "Số 123, Đường ABC"
+                                    },
+                                    "is_default": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "home",
+                                            "office",
+                                            "other"
+                                        ],
+                                        "example": "home"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật địa chỉ thành công"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserAddress"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy địa chỉ"
+                    },
+                    "422": {
+                        "description": "Lỗi validation dữ liệu"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "User Addresses"
+                ],
+                "summary": "Xóa địa chỉ",
+                "operationId": "8079538606c113e6bc2297ae602f2e09",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/user/addresses/{id}/set-default": {
+            "patch": {
+                "tags": [
+                    "User Addresses"
+                ],
+                "summary": "Đặt làm địa chỉ mặc định",
+                "operationId": "3148a60493e260fd2d48459131497268",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/users": {
             "get": {
                 "tags": [
                     "Admin User Management"
                 ],
-                "summary": "Lấy danh sách người dùng (Admin)",
+                "summary": "Lấy danh sách người dùng (Yêu cầu: superadmin)",
                 "operationId": "7e2f5799553ec93c9c43e2a58490d447",
                 "parameters": [
                     {
@@ -1496,6 +1943,9 @@
                     },
                     "401": {
                         "description": "Chưa xác thực"
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập (Yêu cầu superadmin)"
                     }
                 },
                 "security": [
@@ -1510,7 +1960,7 @@
                 "tags": [
                     "Admin User Management"
                 ],
-                "summary": "Xem chi tiết người dùng (Admin)",
+                "summary": "Xem chi tiết người dùng (Yêu cầu: superadmin)",
                 "operationId": "910a0c7cf580e1c605648d82a4e57f46",
                 "parameters": [
                     {
@@ -1526,6 +1976,9 @@
                     "200": {
                         "description": "Thành công"
                     },
+                    "403": {
+                        "description": "Không có quyền truy cập (Yêu cầu superadmin)"
+                    },
                     "404": {
                         "description": "Không tìm thấy người dùng"
                     }
@@ -1540,7 +1993,7 @@
                 "tags": [
                     "Admin User Management"
                 ],
-                "summary": "Cập nhật người dùng (Admin)",
+                "summary": "Cập nhật người dùng (Yêu cầu: superadmin)",
                 "operationId": "ddfe232db1870b82493bf8bd25596d37",
                 "parameters": [
                     {
@@ -1580,6 +2033,9 @@
                     "200": {
                         "description": "Cập nhật thành công"
                     },
+                    "403": {
+                        "description": "Không có quyền truy cập (Yêu cầu superadmin)"
+                    },
                     "422": {
                         "description": "Lỗi validation"
                     }
@@ -1594,7 +2050,7 @@
                 "tags": [
                     "Admin User Management"
                 ],
-                "summary": "Xóa người dùng (Admin)",
+                "summary": "Xóa người dùng (Yêu cầu: superadmin)",
                 "operationId": "43dd20becb1f47444e484cbb18ce345c",
                 "parameters": [
                     {
@@ -1609,6 +2065,9 @@
                 "responses": {
                     "200": {
                         "description": "Xóa thành công"
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập (Yêu cầu superadmin)"
                     },
                     "404": {
                         "description": "Không tìm thấy người dùng"
@@ -1916,6 +2375,79 @@
                     }
                 },
                 "type": "object"
+            },
+            "UserAddress": {
+                "title": "UserAddress",
+                "description": "Mô hình địa chỉ người dùng",
+                "properties": {
+                    "id": {
+                        "description": "ID địa chỉ",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "description": "ID người dùng",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "receiver_name": {
+                        "description": "Tên người nhận",
+                        "type": "string",
+                        "example": "Nguyễn Văn A"
+                    },
+                    "receiver_phone": {
+                        "description": "Số điện thoại người nhận",
+                        "type": "string",
+                        "example": "0987654321"
+                    },
+                    "province_id": {
+                        "description": "ID Tỉnh/Thành phố",
+                        "type": "integer",
+                        "example": 202,
+                        "nullable": true
+                    },
+                    "district_id": {
+                        "description": "ID Quận/Huyện",
+                        "type": "integer",
+                        "example": 111,
+                        "nullable": true
+                    },
+                    "ward_id": {
+                        "description": "ID Phường/Xã",
+                        "type": "integer",
+                        "example": 333,
+                        "nullable": true
+                    },
+                    "address_detail": {
+                        "description": "Địa chỉ cụ thể",
+                        "type": "string",
+                        "example": "Số 123, Đường ABC"
+                    },
+                    "is_default": {
+                        "description": "Có phải địa chỉ mặc định không",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "type": {
+                        "description": "Loại địa chỉ",
+                        "type": "string",
+                        "enum": [
+                            "home",
+                            "office",
+                            "other"
+                        ],
+                        "example": "home"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -1932,6 +2464,10 @@
             "description": "Admin"
         },
         {
+            "name": "Staff Management",
+            "description": "Staff Management"
+        },
+        {
             "name": "Auth",
             "description": "Auth"
         },
@@ -1946,6 +2482,10 @@
         {
             "name": "Product Variants",
             "description": "Product Variants"
+        },
+        {
+            "name": "User Addresses",
+            "description": "User Addresses"
         },
         {
             "name": "Admin User Management",

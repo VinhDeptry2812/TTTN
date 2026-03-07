@@ -7,22 +7,24 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class UpdateUserRequest extends FormRequest
+class UpdateUserAddressRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Admin middleware đã check, nên ở đây trả về true
         return true;
     }
 
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|required|string|max:255',
-            'phone' => 'nullable|string|max:15',
-            'gender' => 'nullable|in:male,female,other',
-            'birthday' => 'nullable|date',
-            'is_active' => 'boolean'
+            'receiver_name' => 'sometimes|required|string|max:255',
+            'receiver_phone' => 'sometimes|required|string|max:255',
+            'province_id' => 'nullable|integer',
+            'district_id' => 'nullable|integer',
+            'ward_id' => 'nullable|integer',
+            'address_detail' => 'sometimes|required|string|max:255',
+            'is_default' => 'boolean',
+            'type' => 'string|in:home,office,other'
         ];
     }
 
@@ -39,20 +41,19 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'required' => ':attribute không được để trống.',
-            'max' => ':attribute không được vượt giá trị cho phép.',
+            'max' => ':attribute không được vượt quá :max ký tự.',
             'in' => ':attribute không hợp lệ.',
-            'date' => ':attribute phải là định dạng ngày.',
+            'integer' => ':attribute phải là số nguyên.',
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'name' => 'Tên người dùng',
-            'phone' => 'Số điện thoại',
-            'gender' => 'Giới tính',
-            'birthday' => 'Ngày sinh',
-            'is_active' => 'Trạng thái hoạt động',
+            'receiver_name' => 'Tên người nhận',
+            'receiver_phone' => 'Số điện thoại',
+            'address_detail' => 'Địa chỉ chi tiết',
+            'type' => 'Loại địa chỉ',
         ];
     }
 }

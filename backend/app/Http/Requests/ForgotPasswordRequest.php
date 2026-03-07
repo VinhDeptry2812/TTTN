@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class ForgotPasswordRequest extends FormRequest
 {
@@ -14,16 +16,29 @@ class ForgotPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email:rfc,dns|exists:users,email',
+            'email' => 'required|email|exists:users,email'
+        ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Lỗi validation dữ liệu',
+            'errors' => $validator->errors()
+        ], 422));
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'email' => 'Địa chỉ email',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'email.required' => 'Vui lòng nhập email.',
-            'email.email' => 'Email không hợp lệ.',
-            'email.exists' => 'Email không tồn tại trong hệ thống.',
         ];
     }
 }

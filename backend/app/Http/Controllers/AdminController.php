@@ -4,6 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Models\Admin;
+use App\Http\Requests\StoreAdminRequest;
+use App\Http\Requests\UpdateAdminRequest;
+use Illuminate\Support\Facades\Hash;
+
 class AdminController extends Controller
 {
     /**
@@ -90,56 +95,148 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/admin/staff",
+     *     summary="Lấy danh sách admin/nhân viên",
+     *     tags={"Staff Management"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Thành công"),
+     *     @OA\Response(response=401, description="Chưa xác thực"),
+     *     @OA\Response(response=403, description="Không có quyền")
+     * )
+     */
     public function index()
     {
-        // ... (code cũ)
+        $admins = Admin::all();
+        return response()->json([
+            'success' => true,
+            'data' => $admins
+        ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * @OA\Post(
+     *     path="/admin/staff",
+     *     summary="Tạo admin/nhân viên mới",
+     *     tags={"Staff Management"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","email","password","password_confirmation","role"},
+     *             @OA\Property(property="name", type="string", example="New Staff"),
+     *             @OA\Property(property="email", type="string", example="staff@gmail.com"),
+     *             @OA\Property(property="password", type="string", example="password123"),
+     *             @OA\Property(property="password_confirmation", type="string", example="password123"),
+     *             @OA\Property(property="role", type="string", enum={"admin", "staff"}, example="staff"),
+     *             @OA\Property(property="is_active", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Tạo thành công"),
+     *     @OA\Response(response=422, description="Dữ liệu không hợp lệ")
+     * )
      */
-    public function create()
+    public function store(StoreAdminRequest $request)
     {
-        //
+        $validated = $request->validated();
+        $validated['password'] = Hash::make($validated['password']);
+
+        $admin = Admin::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tạo tài khoản quản trị thành công',
+            'data' => $admin
+        ], 201);
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
+     * @OA\Get(
+     *     path="/admin/staff/{id}",
+     *     summary="Xem chi tiết admin/nhân viên",
+     *     tags={"Staff Management"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Thành công"),
+     *     @OA\Response(response=404, description="Không tìm thấy")
+     * )
      */
     public function show(string $id)
     {
-        //
+        $admin = Admin::findOrFail($id);
+        return response()->json([
+            'success' => true,
+            'data' => $admin
+        ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * @OA\Put(
+     *     path="/admin/staff/{id}",
+     *     summary="Cập nhật admin/nhân viên",
+     *     tags={"Staff Management"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="email", type="string"),
+     *             @OA\Property(property="role", type="string"),
+     *             @OA\Property(property="is_active", type="boolean")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Cập nhật thành công"),
+     *     @OA\Response(response=404, description="Không tìm thấy")
+     * )
      */
-    public function edit(string $id)
+    public function update(UpdateAdminRequest $request, string $id)
     {
-        //
+        $admin = Admin::findOrFail($id);
+        $validated = $request->validated();
+
+        if (isset($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        }
+
+        $admin->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật tài khoản thành công',
+            'data' => $admin
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *     path="/admin/staff/{id}",
+     *     summary="Xóa admin/nhân viên",
+     *     tags={"Staff Management"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Xóa thành công"),
+     *     @OA\Response(response=404, description="Không tìm thấy")
+     * )
      */
     public function destroy(string $id)
     {
-        //
+        $admin = Admin::findOrFail($id);
+
+        // Không cho phép superadmin tự xóa chính mình nếu cần (tùy logic)
+        if ($admin->role === 'superadmin' && auth('admin-api')->id() === $admin->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không thể tự xóa tài khoản superadmin của chính mình'
+            ], 403);
+        }
+
+        $admin->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Xóa tài khoản thành công'
+        ]);
     }
 }
+

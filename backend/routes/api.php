@@ -4,7 +4,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProductVariantController;
-use App\Models\Category;
+use App\Http\Controllers\UserAddressController;
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
@@ -28,7 +28,12 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/update-profile', [AuthController::class, 'updateProfile']);
 
-
+    // Quản lý địa chỉ
+    Route::get('user/addresses', [UserAddressController::class, 'index']);
+    Route::post('user/addresses', [UserAddressController::class, 'store']);
+    Route::put('user/addresses/{id}', [UserAddressController::class, 'update']);
+    Route::delete('user/addresses/{id}', [UserAddressController::class, 'destroy']);
+    Route::patch('user/addresses/{id}/set-default', [UserAddressController::class, 'setDefault']);
 });
 
 // Public route cho Admin
@@ -39,30 +44,49 @@ Route::middleware('auth:admin-api')->group(function () {
     Route::get('/admin/me', [AdminController::class, 'me']);
     Route::post('/admin/logout', [AdminController::class, 'logout']);
     Route::get('/admin/dashboard', [AdminController::class, 'index']);
-    Route::post('/products/create', [ProductController::class, 'store']);
-    Route::match(['POST', 'PUT'], '/products/{id}', [ProductController::class, 'update']);
-    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
-    // Product Variants (Admin)
-    Route::post('/products/{productId}/variants', [ProductVariantController::class, 'store']);
-    Route::match(['POST', 'PUT'], '/products/{productId}/variants/{variantId}', [ProductVariantController::class, 'update']);
-    Route::delete('/products/{productId}/variants/{variantId}', [ProductVariantController::class, 'destroy']);
 
-    // Categories (Admin)
-    Route::post('/categories', [CategoryController::class, 'store']);
-    Route::get('/categories/{id}', [CategoryController::class, 'show']);
-    Route::match(['POST', 'PUT'], '/categories/{id}', [CategoryController::class, 'update']);
-    Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+    // --- Nhóm quyền: Chỉ Superadmin ---
+    Route::middleware('role.admin:superadmin')->group(function () {
+        // Quản lý User (Khách hàng)
+        Route::get('/users', [UserController::class, 'index']);
+        Route::get('/users/{id}', [UserController::class, 'show']);
+        Route::put('/users/{id}', [UserController::class, 'update']);
+        Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
-    // User Management (Admin)
-    Route::get('/users', [UserController::class, 'index']);
-    Route::get('/users/{id}', [UserController::class, 'show']);
-    Route::put('/users/{id}', [UserController::class, 'update']);
-    Route::delete('/users/{id}', [UserController::class, 'destroy']);
-
-    // Nếu muốn check role cụ thể (superadmin mới được vào)
-    Route::middleware('is_superadmin')->group(function () {
-        //
+        // Quản lý Staff (Nhân viên/Admins)
+        Route::get('/admin/staff', [AdminController::class, 'index']);
+        Route::post('/admin/staff', [AdminController::class, 'store']);
+        Route::get('/admin/staff/{id}', [AdminController::class, 'show']);
+        Route::put('/admin/staff/{id}', [AdminController::class, 'update']);
+        Route::delete('/admin/staff/{id}', [AdminController::class, 'destroy']);
     });
+
+    // --- Nhóm quyền: Superadmin & Admin ---
+    Route::middleware('role.admin:superadmin,admin')->group(function () {
+        // Quản lý Sản phẩm
+        Route::post('/products/create', [ProductController::class, 'store']);
+        Route::match(['POST', 'PUT'], '/products/{id}', [ProductController::class, 'update']);
+        Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+
+        // Product Variants
+        Route::post('/products/{productId}/variants', [ProductVariantController::class, 'store']);
+        Route::match(['POST', 'PUT'], '/products/{productId}/variants/{variantId}', [ProductVariantController::class, 'update']);
+        Route::delete('/products/{productId}/variants/{variantId}', [ProductVariantController::class, 'destroy']);
+
+        // Categories
+        Route::post('/categories', [CategoryController::class, 'store']);
+        Route::get('/categories/{id}', [CategoryController::class, 'show']);
+        Route::match(['POST', 'PUT'], '/categories/{id}', [CategoryController::class, 'update']);
+        Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+    });
+
+    // --- Nhóm quyền: Nhân viên (Staff) ---
+    Route::middleware('role.admin:superadmin,admin,staff')->group(function () {
+        // Staff có thể xem Dashboard và có thể được cấp quyền xem sản phẩm (nếu cần)
+        // Hiện tại các route GET sản phẩm đã để Public ở trên đầu file api.php rồi
+    });
+
+    // Các route khác nếu có...
 });
 
 
