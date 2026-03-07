@@ -235,7 +235,7 @@ class AuthController extends Controller
             'created_at' => now(),
         ]);
         // Link gửi cho user (trỏ về frontend)
-        $resetLink = env('FRONTEND_URL', 'https://tttn-2.onrender.com/resetpassword')
+        $resetLink = env('FRONTEND_URL', 'https://lt-createwebfunitureluxury.onrender.com/resetpassword')
             . '?token=' . $token
             . '&email=' . urlencode($request->email);
         // Gửi mail
@@ -456,7 +456,7 @@ class AuthController extends Controller
             $token = Auth::login($user);
 
             // Redirect về Frontend kèm Token
-            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000/');
+            $frontendUrl = env('FRONTEND_URL', 'https://lt-createwebfunitureluxury.onrender.com');
             // Thay vì redirect toàn trang, trả về view để gửi message tới trang mẹ
             return response()
                 ->view('auth.callback', [

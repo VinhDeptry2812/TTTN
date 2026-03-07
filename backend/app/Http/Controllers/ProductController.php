@@ -13,8 +13,15 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * @OA\Info(
- *     title="API WEB MÌNH",
- *     version="1.0.0"
+ *     title="API HỆ THỐNG NỘI THẤT NHÓM MÌNH",
+ *     version="1.0.0",
+ *     description="Hệ thống API hỗ trợ phân quyền người dùng (RBAC). 
+ *     
+ *     ### Danh sách Vai trò (Roles):
+ *     - **superadmin**: Quyền cao nhất, quản lý toàn bộ hệ thống bao gồm cả nhân viên và khách hàng.
+ *     - **admin**: Quản lý nghiệp vụ chính (Sản phẩm, Danh mục, Đơn hàng).
+ *     - **staff**: Nhân viên vận hành, xem báo cáo và thực hiện các tác vụ được chỉ định.
+ *     - **user**: Khách hàng (mặc định)."
  * )
  * 
  * @OA\Schema(
@@ -202,7 +209,7 @@ class ProductController extends Controller
     /**
      * @OA\Post(
      *     path="/products/create",
-     *     summary="Tạo sản phẩm mới (Admin)",
+     *     summary="Tạo sản phẩm mới (Yêu cầu: superadmin, admin)",
      *     tags={"Products"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
@@ -221,6 +228,7 @@ class ProductController extends Controller
      *         )
      *     ),
      *     @OA\Response(response=201, description="Tạo thành công"),
+     *     @OA\Response(response=403, description="Không có quyền truy cập"),
      *     @OA\Response(response=422, description="Lỗi validation")
      * )
      */
@@ -247,7 +255,7 @@ class ProductController extends Controller
     /**
      * @OA\Post(
      *     path="/products/{id}",
-     *     summary="Cập nhật sản phẩm (Admin)",
+     *     summary="Cập nhật sản phẩm (Yêu cầu: superadmin, admin)",
      *     description="Vì Laravel không hỗ trợ file upload qua PUT trực tiếp một cách tốt nhất, hãy dùng POST kèm tham số _method=PUT",
      *     tags={"Products"},
      *     security={{"bearerAuth":{}}},
@@ -266,7 +274,8 @@ class ProductController extends Controller
      *             )
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Cập nhật thành công")
+     *     @OA\Response(response=200, description="Cập nhật thành công"),
+     *     @OA\Response(response=403, description="Không có quyền truy cập")
      * )
      */
     public function update(UpdateProductRequest $request, $id)
@@ -298,11 +307,12 @@ class ProductController extends Controller
     /**
      * @OA\Delete(
      *     path="/products/{id}",
-     *     summary="Xóa sản phẩm (Admin - Soft Delete)",
+     *     summary="Xóa sản phẩm (Yêu cầu: superadmin, admin)",
      *     tags={"Products"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
      *     @OA\Response(response=200, description="Xóa thành công"),
+     *     @OA\Response(response=403, description="Không có quyền truy cập"),
      *     @OA\Response(response=404, description="Sản phẩm không tồn tại")
      * )
      */

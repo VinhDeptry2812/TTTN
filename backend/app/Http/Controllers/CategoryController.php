@@ -94,7 +94,7 @@ class CategoryController extends Controller
     /**
      * @OA\Post(
      *     path="/categories",
-     *     summary="Tạo danh mục mới (Admin)",
+     *     summary="Tạo danh mục mới (Yêu cầu: superadmin, admin)",
      *     tags={"Categories"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
@@ -121,6 +121,7 @@ class CategoryController extends Controller
      *             @OA\Property(property="data", ref="#/components/schemas/Category")
      *         )
      *     ),
+     *     @OA\Response(response=403, description="Không có quyền truy cập"),
      *     @OA\Response(response=422, description="Dữ liệu không hợp lệ")
      * )
      */
@@ -180,7 +181,7 @@ class CategoryController extends Controller
     /**
      * @OA\Post(
      *     path="/categories/{id}",
-     *     summary="Cập nhật danh mục (Admin)",
+     *     summary="Cập nhật danh mục (Yêu cầu: superadmin, admin)",
      *     description="Vì Laravel không hỗ trợ multipart/form-data qua PUT tốt, nên dùng POST kèm _method=PUT",
      *     tags={"Categories"},
      *     security={{"bearerAuth":{}}},
@@ -208,7 +209,8 @@ class CategoryController extends Controller
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", ref="#/components/schemas/Category")
      *         )
-     *     )
+     *     ),
+     *     @OA\Response(response=403, description="Không có quyền truy cập")
      * )
      */
     public function update(UpdateCategoryRequest $request, $id)
@@ -243,7 +245,7 @@ class CategoryController extends Controller
     /**
      * @OA\Delete(
      *     path="/categories/{id}",
-     *     summary="Xóa danh mục (Admin)",
+     *     summary="Xóa danh mục (Yêu cầu: superadmin, admin)",
      *     tags={"Categories"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
@@ -255,6 +257,7 @@ class CategoryController extends Controller
      *             @OA\Property(property="message", type="string")
      *         )
      *     ),
+     *     @OA\Response(response=403, description="Không có quyền truy cập"),
      *     @OA\Response(response=422, description="Không thể xóa vì còn sản phẩm")
      * )
      */

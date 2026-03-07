@@ -11,7 +11,7 @@ class UserController extends Controller
     /**
      * @OA\Get(
      *     path="/users",
-     *     summary="Lấy danh sách người dùng (Admin)",
+     *     summary="Lấy danh sách người dùng (Yêu cầu: superadmin)",
      *     tags={"Admin User Management"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
@@ -22,7 +22,8 @@ class UserController extends Controller
      *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(response=200, description="Thành công"),
-     *     @OA\Response(response=401, description="Chưa xác thực")
+     *     @OA\Response(response=401, description="Chưa xác thực"),
+     *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)")
      * )
      */
     public function index(Request $request)
@@ -48,7 +49,7 @@ class UserController extends Controller
     /**
      * @OA\Get(
      *     path="/users/{id}",
-     *     summary="Xem chi tiết người dùng (Admin)",
+     *     summary="Xem chi tiết người dùng (Yêu cầu: superadmin)",
      *     tags={"Admin User Management"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
@@ -58,6 +59,7 @@ class UserController extends Controller
      *         @OA\Schema(type="integer")
      *     ),
      *     @OA\Response(response=200, description="Thành công"),
+     *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)"),
      *     @OA\Response(response=404, description="Không tìm thấy người dùng")
      * )
      */
@@ -81,7 +83,7 @@ class UserController extends Controller
     /**
      * @OA\Put(
      *     path="/users/{id}",
-     *     summary="Cập nhật người dùng (Admin)",
+     *     summary="Cập nhật người dùng (Yêu cầu: superadmin)",
      *     tags={"Admin User Management"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
@@ -99,6 +101,7 @@ class UserController extends Controller
      *         )
      *     ),
      *     @OA\Response(response=200, description="Cập nhật thành công"),
+     *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)"),
      *     @OA\Response(response=422, description="Lỗi validation")
      * )
      */
@@ -125,7 +128,7 @@ class UserController extends Controller
     /**
      * @OA\Delete(
      *     path="/users/{id}",
-     *     summary="Xóa người dùng (Admin)",
+     *     summary="Xóa người dùng (Yêu cầu: superadmin)",
      *     tags={"Admin User Management"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
@@ -135,6 +138,7 @@ class UserController extends Controller
      *         @OA\Schema(type="integer")
      *     ),
      *     @OA\Response(response=200, description="Xóa thành công"),
+     *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)"),
      *     @OA\Response(response=404, description="Không tìm thấy người dùng")
      * )
      */

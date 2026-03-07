@@ -84,7 +84,7 @@
 
     function fallbackRedirect() {
         const token = data.token;
-        const frontendUrl = "{{ env('FRONTEND_URL', 'http://localhost:3000') }}";
+        const frontendUrl = "{{ env('FRONTEND_URL', 'https://lt-createwebfunitureluxury.onrender.com') }}";
         if (token) {
             window.location.href = frontendUrl + "/login?token=" + token;
         } else {
