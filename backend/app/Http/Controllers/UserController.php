@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\StoreUserRequest;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -80,6 +81,43 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/users",
+     *     summary="Thêm người dùng mới (Yêu cầu: superadmin)",
+     *     tags={"Admin User Management"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","email","password"},
+     *             @OA\Property(property="name", type="string", example="Nguyen Van A"),
+     *             @OA\Property(property="email", type="string", format="email", example="nguyenvana@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="123456"),
+     *             @OA\Property(property="phone", type="string", example="0123456789"),
+     *             @OA\Property(property="gender", type="string", enum={"male", "female", "other"}, example="male"),
+     *             @OA\Property(property="birthday", type="string", format="date", example="1990-01-01"),
+     *             @OA\Property(property="is_active", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Thêm thành công"),
+     *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)"),
+     *     @OA\Response(response=422, description="Lỗi validation")
+     * )
+     */
+    public function store(StoreUserRequest $request)
+    {
+        $data = $request->validated();
+        $data['password'] = bcrypt($data['password']);
+
+        $user = User::create($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Thêm người dùng thành công',
+            'user' => $user
+        ], 201);
+    }
 
     //Thay kiem tra
     public function getUsers()
