@@ -39,13 +39,6 @@ use App\Http\Requests\ResetPasswordRequest;
  */
 class AuthController extends Controller
 {
-
-    public function getUsers()
-    {
-        $users = User::select('id', 'name')->get();
-        return view('products', compact('users'));
-    }
-
     /**
      * @OA\Post(
      *     path="/register",

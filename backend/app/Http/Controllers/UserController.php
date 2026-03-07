@@ -65,7 +65,7 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = User::find($id);
+        $user = User::select('id', 'name')->find($id);
 
         if (!$user) {
             return response()->json([
@@ -78,6 +78,31 @@ class UserController extends Controller
             'success' => true,
             'user' => $user
         ]);
+    }
+
+
+    //Thay kiem tra
+    public function getUsers()
+    {
+        $users = User::select('id', 'name')->get();
+        return response()->json([
+            'success' => true,
+            'users' => $users
+        ]);
+    }
+
+    public function showUsers($id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Người dùng không tồn tại'
+            ], 404);
+        }
+
+        return view('product.index', compact('user'));
     }
 
     /**
