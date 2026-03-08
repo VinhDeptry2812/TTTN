@@ -775,6 +775,237 @@
                 }
             }
         },
+        "/cart": {
+            "get": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Lấy thông tin giỏ hàng",
+                "operationId": "294e093bf29c111c01d8402121fb4f43",
+                "parameters": [
+                    {
+                        "name": "X-Session-ID",
+                        "in": "header",
+                        "description": "Session ID cho khách vãng lai",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lấy thông tin thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cart/add": {
+            "post": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Thêm sản phẩm vào giỏ hàng",
+                "operationId": "567ccee74d03c3c5737e69a6cae4a3d5",
+                "parameters": [
+                    {
+                        "name": "X-Session-ID",
+                        "in": "header",
+                        "description": "Session ID cho khách vãng lai",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "product_variant_id": {
+                                        "type": "integer",
+                                        "example": 1,
+                                        "nullable": true
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Thêm sản phẩm thành công"
+                    },
+                    "400": {
+                        "description": "Dữ liệu không hợp lệ / Hết hàng"
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cart/update/{itemId}": {
+            "put": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Cập nhật số lượng sản phẩm trong giỏ",
+                "operationId": "4c7bade15314466de651458aa458826b",
+                "parameters": [
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "ID của chi tiết giỏ hàng (CartItem ID)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Session-ID",
+                        "in": "header",
+                        "description": "Session ID cho khách vãng lai",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công"
+                    },
+                    "400": {
+                        "description": "Không đủ số lượng tồn kho"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy giỏ hàng hoặc sản phẩm"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cart/remove/{itemId}": {
+            "delete": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Xóa 1 sản phẩm khỏi giỏ hàng",
+                "operationId": "ef0a4c2072529ccae936ff74a02ab873",
+                "parameters": [
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "ID của chi tiết giỏ hàng (CartItem ID)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Session-ID",
+                        "in": "header",
+                        "description": "Session ID cho khách vãng lai",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thành công"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy giỏ hàng hoặc sản phẩm"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cart/clear": {
+            "delete": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Xóa toàn bộ giỏ hàng",
+                "operationId": "6c16eeec461bf91618968113b533465a",
+                "parameters": [
+                    {
+                        "name": "X-Session-ID",
+                        "in": "header",
+                        "description": "Session ID cho khách vãng lai",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/categories": {
             "get": {
                 "tags": [
@@ -2574,6 +2805,10 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Cart",
+            "description": "Cart"
         },
         {
             "name": "Categories",
