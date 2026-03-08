@@ -35,7 +35,7 @@ class FaceBookAuthController extends Controller
         $url = $driver->redirect()->getTargetUrl();
 
         return response()
-            ->view('auth.redirect', ['url' => $url])
+            ->view('auth.redirectfb', ['url' => $url])
             ->header('Content-Type', 'text/html');
     }
 
