@@ -24,7 +24,7 @@ class FaceBookAuthController extends Controller
         $redirectUrl = config('services.facebook.redirect');
         $driver = Socialite::driver('facebook')
             ->scopes(['public_profile', 'email'])
-            ->with(['version' => 'v19.0'])
+            ->usingGraphVersion('v19.0')
             ->stateless()
             ->redirectUrl($redirectUrl);
 
@@ -52,7 +52,10 @@ class FaceBookAuthController extends Controller
     {
         try {
             $redirectUrl = config('services.facebook.redirect');
-            $driver = Socialite::driver('facebook')->stateless()->redirectUrl($redirectUrl);
+            $driver = Socialite::driver('facebook')
+                ->usingGraphVersion('v19.0')
+                ->stateless()
+                ->redirectUrl($redirectUrl);
 
             // Bỏ qua kiểm tra SSL trên môi trường local (Windows)
             if (config('app.env') === 'local') {
