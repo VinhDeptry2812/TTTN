@@ -24,6 +24,7 @@ class FaceBookAuthController extends Controller
         $redirectUrl = config('services.facebook.redirect');
         $driver = Socialite::driver('facebook')
             ->scopes(['public_profile', 'email'])
+            ->with(['version' => 'v19.0'])
             ->stateless()
             ->redirectUrl($redirectUrl);
 

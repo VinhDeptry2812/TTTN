@@ -11,9 +11,7 @@ echo "🔧 Checking migration status..."
 php artisan migrate:status
 
 echo "🔧 Running migrate and seed..."
-# php artisan migrate --force --seed
-php artisan migrate:fresh
-php artisan db:seed
+php artisan migrate --force --seed
 
 echo "📄 Publishing Swagger assets..."
 php artisan vendor:publish --provider="L5Swagger\L5SwaggerServiceProvider" --force || true
