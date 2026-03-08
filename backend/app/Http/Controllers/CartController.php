@@ -102,7 +102,11 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1'
         ]);
 
-        $product = Product::findOrFail($request->product_id);
+        $product = Product::find($request->product_id);
+
+        if (!$product) {
+            return response()->json(['message' => 'Sản phẩm không tồn tại hoặc đã bị xóa.'], 404);
+        }
         $variantId = $request->product_variant_id;
         $quantity = $request->quantity;
 
