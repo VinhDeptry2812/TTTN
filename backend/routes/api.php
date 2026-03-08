@@ -8,6 +8,7 @@ use App\Http\Controllers\UserAddressController;
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FaceBookAuthController;
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -100,8 +101,8 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
 // Link này là callback từ Google trả về
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
-Route::get('/auth/facebook', [AuthController::class, 'redirectToFacebook']);
-Route::get('/auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
+Route::get('/auth/facebook', [FaceBookAuthController::class, 'redirectToFacebook']);
+Route::get('/auth/facebook/callback', [FaceBookAuthController::class, 'handleFacebookCallback']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 

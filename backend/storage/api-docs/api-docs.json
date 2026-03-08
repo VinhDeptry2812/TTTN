@@ -747,34 +747,6 @@
                 }
             }
         },
-        "/auth/facebook": {
-            "get": {
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Chuyển hướng sang trang đăng nhập Facebook",
-                "operationId": "d39f05ad906f422b2bd11d17817e616a",
-                "responses": {
-                    "302": {
-                        "description": "Redirect to Facebook OAuth"
-                    }
-                }
-            }
-        },
-        "/auth/facebook/callback": {
-            "get": {
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Xử lý callback từ Facebook",
-                "operationId": "848b6efd93189176b0256949087a84c4",
-                "responses": {
-                    "302": {
-                        "description": "Redirect về Frontend kèm token hoặc lỗi"
-                    }
-                }
-            }
-        },
         "/categories": {
             "get": {
                 "tags": [
@@ -1091,6 +1063,34 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/auth/facebook": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Chuyển hướng sang trang đăng nhập Facebook",
+                "operationId": "e2782d56674297e719c8d12d2fb62182",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to Facebook OAuth"
+                    }
+                }
+            }
+        },
+        "/auth/facebook/callback": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Xử lý callback từ Facebook",
+                "operationId": "01fcfff2818bcc141c25c557a54a9a82",
+                "responses": {
+                    "302": {
+                        "description": "Redirect về Frontend kèm token hoặc lỗi"
+                    }
+                }
             }
         },
         "/products": {
