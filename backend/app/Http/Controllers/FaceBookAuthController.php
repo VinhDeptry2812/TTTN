@@ -94,7 +94,7 @@ class FaceBookAuthController extends Controller
 
             // Redirect về Frontend kèm Token
             return response()
-                ->view('auth.callback', [
+                ->view('auth.callbackfb', [
                     'token' => $token,
                     'user' => $user
                 ])

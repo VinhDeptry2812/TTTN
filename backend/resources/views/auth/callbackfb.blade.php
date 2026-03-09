@@ -84,7 +84,7 @@
 
     function fallbackRedirect() {
         const token = data.token;
-        const frontendUrl = "{{ env('FRONTEND_URL', 'https://tttn-2.onrender.com') }}";
+        const frontendUrl = "{{ config('app.frontend_url') }}";
         if (token) {
             window.location.href = frontendUrl + "/auth?token=" + token;
         } else {
