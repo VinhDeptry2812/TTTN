@@ -12,6 +12,8 @@ echo "🔧 Checking migration status..."
 
 echo "🔧 Running migrate and seed..."
 #php artisan migrate --force --seed
+
+# reset db va chay lai seed
 php artisan migrate:fresh --seed --force
 
 echo "📄 Publishing Swagger assets..."
