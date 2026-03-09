@@ -86,9 +86,9 @@
         const token = data.token;
         const frontendUrl = "{{ config('app.frontend_url') }}";
         if (token) {
-            window.location.href = frontendUrl + "/auth?token=" + token;
+            window.location.href = frontendUrl + "/?token=" + token;
         } else {
-            window.location.href = frontendUrl + "/auth?error=facebook_failed";
+            window.location.href = frontendUrl + "/?error=facebook_failed";
         }
     }
 
