@@ -86,9 +86,9 @@
         const token = data.token;
         const frontendUrl = "{{ env('FRONTEND_URL', 'https://tttn-2.onrender.com') }}";
         if (token) {
-            window.location.href = frontendUrl + "/login?token=" + token;
+            window.location.href = frontendUrl + "/auth?token=" + token;
         } else {
-            window.location.href = frontendUrl + "/login?error=facebook_failed";
+            window.location.href = frontendUrl + "/auth?error=facebook_failed";
         }
     }
 
