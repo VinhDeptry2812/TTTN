@@ -50,7 +50,7 @@
     function sendData() {
         // 1. Luôn ghi vào localStorage như một phương án dự phòng (fallback)
         try {
-            localStorage.setItem('google_auth_result', JSON.stringify(data));
+            localStorage.setItem('facebook_auth_result', JSON.stringify(data));
         } catch (e) {
             console.error("LocalStorage failed:", e);
         }
@@ -88,7 +88,7 @@
         if (token) {
             window.location.href = frontendUrl + "/login?token=" + token;
         } else {
-            window.location.href = frontendUrl + "/login?error=google_failed";
+            window.location.href = frontendUrl + "/login?error=facebook_failed";
         }
     }
 

@@ -105,7 +105,7 @@ class FaceBookAuthController extends Controller
         } catch (\Exception $e) {
             \Log::error('Facebook Login Error: ' . $e->getMessage());
             return response()
-                ->view('auth.callback', [
+                ->view('auth.callbackfb', [
                     'error' => 'facebook_failed'
                 ])
                 ->header('Content-Type', 'text/html');
