@@ -38,6 +38,9 @@ class FaceBookAuthController extends Controller
         return response()
             ->view('auth.redirectfb', ['url' => $url])
             ->header('Content-Type', 'text/html');
+
+        
+
     }
 
     /**
@@ -53,7 +56,6 @@ class FaceBookAuthController extends Controller
         try {
             $redirectUrl = config('services.facebook.redirect');
             $driver = Socialite::driver('facebook')
-                ->usingGraphVersion('v19.0')
                 ->stateless()
                 ->redirectUrl($redirectUrl);
 
@@ -80,6 +82,11 @@ class FaceBookAuthController extends Controller
                     'name' => $facebookUser->getName() ?? $facebookUser->getNickname() ?? 'Facebook User',
                     'email' => $email,
                     'password' => Hash::make(Str::random(24)),
+                    'provider_id' => $facebookUser->getId(),
+                    'provider' => 'facebook',   
+                    'is_active' => '1',
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
@@ -103,5 +110,9 @@ class FaceBookAuthController extends Controller
                 ])
                 ->header('Content-Type', 'text/html');
         }
+
+
+
+       
     }
 }
