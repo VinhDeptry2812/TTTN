@@ -228,7 +228,7 @@ class AuthController extends Controller
             'created_at' => now(),
         ]);
         // Link gửi cho user (trỏ về frontend)
-        $resetLink = env('FRONTEND_URL', 'https://lt-createwebfunitureluxury.onrender.com/resetpassword')
+        $resetLink = env('FRONTEND_URL', 'https://lt-createwebfunitureluxury.onrender.com/reset-password')
             . '?token=' . $token
             . '&email=' . urlencode($request->email);
         // Gửi mail
