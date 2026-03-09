@@ -39,7 +39,7 @@ class FaceBookAuthController extends Controller
             ->view('auth.redirectfb', ['url' => $url])
             ->header('Content-Type', 'text/html');
 
-        
+
 
     }
 
@@ -83,10 +83,8 @@ class FaceBookAuthController extends Controller
                     'email' => $email,
                     'password' => Hash::make(Str::random(24)),
                     'provider_id' => $facebookUser->getId(),
-                    'provider' => 'facebook',   
-                    'is_active' => '1',
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'provider' => 'facebook',
+                    'is_active' => true,
                 ]);
             }
 
@@ -113,6 +111,6 @@ class FaceBookAuthController extends Controller
 
 
 
-       
+
     }
 }
