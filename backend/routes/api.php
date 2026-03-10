@@ -9,6 +9,7 @@ use App\Http\Controllers\UserAddressController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FaceBookAuthController;
+use App\Http\Controllers\WishlistController;
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -45,6 +46,12 @@ Route::delete('/cart/clear', [CartController::class, 'clear']);
     Route::put('user/addresses/{id}', [UserAddressController::class, 'update']);
     Route::delete('user/addresses/{id}', [UserAddressController::class, 'destroy']);
     Route::patch('user/addresses/{id}/set-default', [UserAddressController::class, 'setDefault']);
+
+    //Quản lí wishlist
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::post('/wishlist/add', [WishlistController::class, 'store']);
+    Route::delete('/wishlist/remove/{itemId}', [WishlistController::class, 'remove']);
+    Route::delete('/wishlist/clear', [WishlistController::class, 'clear']);
 });
 
 // Public route cho Admin
