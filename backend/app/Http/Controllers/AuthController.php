@@ -459,9 +459,6 @@ class AuthController extends Controller
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
                     'password' => Hash::make(Str::random(24)),
-                    'gender'=>$googleUser->getGender(),
-                    'birthday'=>$googleUser->getBirthday(),
-                    'phone'=>$googleUser->getPhoneNumber(),
                 ]);
             }
 
