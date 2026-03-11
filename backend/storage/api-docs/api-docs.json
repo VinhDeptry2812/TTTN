@@ -453,6 +453,44 @@
                 }
             }
         },
+        "/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Lấy thông tin người dùng đang đăng nhập",
+                "operationId": "e18baa7d6dfc432241dca2fc1985ce40",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/forgot-password": {
             "post": {
                 "tags": [
@@ -747,32 +785,235 @@
                 }
             }
         },
-        "/auth/facebook": {
+        "/cart": {
             "get": {
                 "tags": [
-                    "Auth"
+                    "Cart"
                 ],
-                "summary": "Chuyển hướng sang trang đăng nhập Facebook",
-                "operationId": "d39f05ad906f422b2bd11d17817e616a",
-                "responses": {
-                    "302": {
-                        "description": "Redirect to Facebook OAuth"
+                "summary": "Lấy thông tin giỏ hàng",
+                "operationId": "294e093bf29c111c01d8402121fb4f43",
+                "parameters": [
+                    {
+                        "name": "X-Session-ID",
+                        "in": "header",
+                        "description": "Session ID cho khách vãng lai",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
-                }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lấy thông tin thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
-        "/auth/facebook/callback": {
-            "get": {
+        "/cart/add": {
+            "post": {
                 "tags": [
-                    "Auth"
+                    "Cart"
                 ],
-                "summary": "Xử lý callback từ Facebook",
-                "operationId": "848b6efd93189176b0256949087a84c4",
-                "responses": {
-                    "302": {
-                        "description": "Redirect về Frontend kèm token hoặc lỗi"
+                "summary": "Thêm sản phẩm vào giỏ hàng",
+                "operationId": "567ccee74d03c3c5737e69a6cae4a3d5",
+                "parameters": [
+                    {
+                        "name": "X-Session-ID",
+                        "in": "header",
+                        "description": "Session ID cho khách vãng lai",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
-                }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "product_variant_id": {
+                                        "type": "integer",
+                                        "example": 1,
+                                        "nullable": true
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Thêm sản phẩm thành công"
+                    },
+                    "400": {
+                        "description": "Dữ liệu không hợp lệ / Hết hàng"
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cart/update/{itemId}": {
+            "put": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Cập nhật số lượng sản phẩm trong giỏ",
+                "operationId": "4c7bade15314466de651458aa458826b",
+                "parameters": [
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "ID của chi tiết giỏ hàng (CartItem ID)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Session-ID",
+                        "in": "header",
+                        "description": "Session ID cho khách vãng lai",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công"
+                    },
+                    "400": {
+                        "description": "Không đủ số lượng tồn kho"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy giỏ hàng hoặc sản phẩm"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cart/remove/{itemId}": {
+            "delete": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Xóa 1 sản phẩm khỏi giỏ hàng",
+                "operationId": "ef0a4c2072529ccae936ff74a02ab873",
+                "parameters": [
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "ID của chi tiết giỏ hàng (CartItem ID)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "X-Session-ID",
+                        "in": "header",
+                        "description": "Session ID cho khách vãng lai",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thành công"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy giỏ hàng hoặc sản phẩm"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cart/clear": {
+            "delete": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Xóa toàn bộ giỏ hàng",
+                "operationId": "6c16eeec461bf91618968113b533465a",
+                "parameters": [
+                    {
+                        "name": "X-Session-ID",
+                        "in": "header",
+                        "description": "Session ID cho khách vãng lai",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/categories": {
@@ -1091,6 +1332,34 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/auth/facebook": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Chuyển hướng sang trang đăng nhập Facebook",
+                "operationId": "e2782d56674297e719c8d12d2fb62182",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to Facebook OAuth"
+                    }
+                }
+            }
+        },
+        "/auth/facebook/callback": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Xử lý callback từ Facebook",
+                "operationId": "01fcfff2818bcc141c25c557a54a9a82",
+                "responses": {
+                    "302": {
+                        "description": "Redirect về Frontend kèm token hoặc lỗi"
+                    }
+                }
             }
         },
         "/products": {
@@ -2183,6 +2452,258 @@
                     }
                 ]
             }
+        },
+        "/wishlist": {
+            "get": {
+                "tags": [
+                    "Wishlist Manager"
+                ],
+                "summary": "Lấy danh sách sản phẩm yêu thích",
+                "description": "Trả về danh sách wishlist của user kèm phân trang. Hỗ trợ tìm kiếm theo tên và lọc theo danh mục.",
+                "operationId": "716344800c279861c61bfee7c75d624d",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Tìm theo tên sản phẩm",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "description": "Lọc theo ID danh mục",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "query",
+                        "description": "Thứ tự sắp xếp theo ngày thêm (asc/desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Số bản ghi mỗi trang",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy danh sách yêu thích thành công!"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/wishlist/add": {
+            "post": {
+                "tags": [
+                    "Wishlist Manager"
+                ],
+                "summary": "Thêm sản phẩm vào danh sách yêu thích (Yêu cầu đăng nhập)",
+                "operationId": "a5211d1703fae00c2c7e008451f2e1de",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Thêm vào wishlist thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Sản phẩm đã được thêm vào danh sách yêu thích thành công!"
+                                        },
+                                        "wishlist": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "product_id": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Chưa đăng nhập"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/wishlist/remove/{product_id}": {
+            "delete": {
+                "tags": [
+                    "Wishlist Manager"
+                ],
+                "summary": "Xóa sản phẩm khỏi danh sách yêu thích (Yêu cầu đăng nhập)",
+                "operationId": "3f6c1d06eda7d17c1b1dcc4167894173",
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "description": "ID sản phẩm cần xóa khỏi wishlist",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 5
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đã xóa sản phẩm khỏi danh sách"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Chưa đăng nhập"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/wishlist/clear": {
+            "delete": {
+                "tags": [
+                    "Wishlist Manager"
+                ],
+                "summary": "Xóa toàn bộ danh sách yêu thích (Yêu cầu đăng nhập)",
+                "operationId": "2a97b8f037b7ae56bfc12f0acbf1a9b2",
+                "responses": {
+                    "200": {
+                        "description": "Làm trống wishlist thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đã xóa toàn bộ danh sách"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -2576,6 +3097,10 @@
             "description": "Auth"
         },
         {
+            "name": "Cart",
+            "description": "Cart"
+        },
+        {
             "name": "Categories",
             "description": "Categories"
         },
@@ -2594,6 +3119,10 @@
         {
             "name": "Admin User Management",
             "description": "Admin User Management"
+        },
+        {
+            "name": "Wishlist Manager",
+            "description": "Wishlist Manager"
         }
     ]
 }
