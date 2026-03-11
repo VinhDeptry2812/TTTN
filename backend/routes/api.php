@@ -31,11 +31,11 @@ Route::post('/login', [AuthController::class, 'login']);
 // Protected routes (cần token)
 Route::middleware('auth:api')->group(function () {
     // Cart Routes (Public, uses auth or session_id)
-Route::get('/cart', [CartController::class, 'index']);
-Route::post('/cart/add', [CartController::class, 'add']);
-Route::put('/cart/update/{itemId}', [CartController::class, 'update']);
-Route::delete('/cart/remove/{itemId}', [CartController::class, 'remove']);
-Route::delete('/cart/clear', [CartController::class, 'clear']);
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart/add', [CartController::class, 'add']);
+    Route::put('/cart/update/{itemId}', [CartController::class, 'update']);
+    Route::delete('/cart/remove/{itemId}', [CartController::class, 'remove']);
+    Route::delete('/cart/clear', [CartController::class, 'clear']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/update-profile', [AuthController::class, 'updateProfile']);

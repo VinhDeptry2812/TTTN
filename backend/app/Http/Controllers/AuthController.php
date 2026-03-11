@@ -148,6 +148,25 @@ class AuthController extends Controller
         }
     }
 
+
+    
+    /**
+     * @OA\Get(
+     *     path="/me",
+     *     summary="Lấy thông tin người dùng đang đăng nhập",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="user", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
     // LẤY THÔNG TIN USER ĐANG ĐĂNG NHẬP
     public function me()
     {
