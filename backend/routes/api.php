@@ -8,6 +8,8 @@ use App\Http\Controllers\UserAddressController;
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FaceBookAuthController;
+use App\Http\Controllers\WishlistController;
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -29,11 +31,11 @@ Route::post('/login', [AuthController::class, 'login']);
 // Protected routes (cần token)
 Route::middleware('auth:api')->group(function () {
     // Cart Routes (Public, uses auth or session_id)
-Route::get('/cart', [CartController::class, 'index']);
-Route::post('/cart/add', [CartController::class, 'add']);
-Route::put('/cart/update/{itemId}', [CartController::class, 'update']);
-Route::delete('/cart/remove/{itemId}', [CartController::class, 'remove']);
-Route::delete('/cart/clear', [CartController::class, 'clear']);
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart/add', [CartController::class, 'add']);
+    Route::put('/cart/update/{itemId}', [CartController::class, 'update']);
+    Route::delete('/cart/remove/{itemId}', [CartController::class, 'remove']);
+    Route::delete('/cart/clear', [CartController::class, 'clear']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/update-profile', [AuthController::class, 'updateProfile']);
@@ -44,6 +46,12 @@ Route::delete('/cart/clear', [CartController::class, 'clear']);
     Route::put('user/addresses/{id}', [UserAddressController::class, 'update']);
     Route::delete('user/addresses/{id}', [UserAddressController::class, 'destroy']);
     Route::patch('user/addresses/{id}/set-default', [UserAddressController::class, 'setDefault']);
+
+    //Quản lí wishlist
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::post('/wishlist/add', [WishlistController::class, 'store']);
+    Route::delete('/wishlist/remove/{itemId}', [WishlistController::class, 'remove']);
+    Route::delete('/wishlist/clear', [WishlistController::class, 'clear']);
 });
 
 // Public route cho Admin
@@ -110,8 +118,8 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
 // Link này là callback từ Google trả về
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
-Route::get('/auth/facebook', [AuthController::class, 'redirectToFacebook']);
-Route::get('/auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
+Route::get('/auth/facebook', [FaceBookAuthController::class, 'redirectToFacebook']);
+Route::get('/auth/facebook/callback', [FaceBookAuthController::class, 'handleFacebookCallback']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 
