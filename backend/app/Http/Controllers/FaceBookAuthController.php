@@ -81,6 +81,9 @@ class FaceBookAuthController extends Controller
                 $user = User::create([
                     'name' => $facebookUser->getName() ?? $facebookUser->getNickname() ?? 'Facebook User',
                     'email' => $email,
+                    'gender'=>$facebookUser->getGender(),
+                    'birthday'=>$facebookUser->getBirthday(),
+                    'phone'=>$facebookUser->getPhoneNumber(),
                     'password' => Hash::make(Str::random(24)),
                     'provider_id' => $facebookUser->getId(),
                     'provider' => 'facebook',
