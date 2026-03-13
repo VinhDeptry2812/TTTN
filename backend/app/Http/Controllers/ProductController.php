@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GeminiRequestGenerateDesc;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Support\Str;
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
+use App\Services\GeminiService;
 
 /**
  * @OA\Info(
@@ -345,5 +347,62 @@ class ProductController extends Controller
         }
 
         return array_unique($ids);
+    }
+
+
+    
+    /**
+     * @OA\Post(
+     *     path="/products/generate-ai-description",
+     *     summary="Tạo mô tả sản phẩm bằng AI (Yêu cầu: superadmin, admin)",
+     *     description="Sử dụng OpenAI để tạo một đoạn mô tả sản phẩm hấp dẫn dựa trên tên, danh mục và chất liệu.",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name"},
+     *             @OA\Property(property="name", type="string", example="Ghế Sofa Da Ý Luxury"),
+     *             @OA\Property(property="category", type="string", example="Sofa"),
+     *             @OA\Property(property="material", type="string", example="Da bò thật, khung gỗ sồi")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tạo mô tả thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="description", type="string", example="Trải nghiệm sự sang trọng tột bậc với Ghế Sofa Da Ý Luxury...")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Lỗi validation dữ liệu",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Lỗi validation dữ liệu"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi kết nối API AI",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Không thể tạo mô tả lúc này")
+     *         )
+     *     )
+     * )
+     */
+    public function generateAIDescription(GeminiRequestGenerateDesc $request, GeminiService $gemini)
+    {
+        $validatedData = $request->validated();
+        $description = $gemini->generateDescription(
+            $validatedData['name'],
+            $validatedData['category'],
+            $validatedData['material']
+        );
+        if (!$description) {
+            return response()->json(['message' => 'Không thể tạo mô tả lúc này'], 500);
+        }
+        return response()->json(['description' => $description]);
     }
 }
