@@ -8,6 +8,8 @@ use App\Http\Controllers\UserAddressController;
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CouponController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\FaceBookAuthController;
 use App\Http\Controllers\WishlistController;
 
@@ -52,6 +54,12 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/wishlist/add', [WishlistController::class, 'store']);
     Route::delete('/wishlist/remove/{itemId}', [WishlistController::class, 'remove']);
     Route::delete('/wishlist/clear', [WishlistController::class, 'clear']);
+
+    // Áp dụng mã giảm giá
+    Route::post('/coupons/apply', [CouponController::class, 'apply']);
+
+    // Đặt hàng
+    Route::post('/checkout', [OrderController::class, 'checkout']);
 });
 
 // Public route cho Admin
@@ -92,6 +100,14 @@ Route::middleware('auth:admin-api')->group(function () {
         Route::get('/categories/{id}', [CategoryController::class, 'show']);
         Route::match(['POST', 'PUT'], '/categories/{id}', [CategoryController::class, 'update']);
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+
+        // Quản lý Mã giảm giá (Coupons)
+        Route::get('/admin/coupons', [CouponController::class, 'index']);
+        // Route::post('/admin/coupons', [CouponController::class, 'store']); // Sẽ được merge vào nhóm admin bên dưới
+        Route::post('/admin/coupons', [CouponController::class, 'store']);
+        Route::get('/admin/coupons/{coupon}', [CouponController::class, 'show']);
+        Route::put('/admin/coupons/{coupon}', [CouponController::class, 'update']);
+        Route::delete('/admin/coupons/{coupon}', [CouponController::class, 'destroy']);
     });
 
     // --- Nhóm quyền: Nhân viên (Staff) ---
