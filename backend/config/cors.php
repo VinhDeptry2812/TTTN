@@ -25,12 +25,11 @@ return [
         'http://127.0.0.1:3000',
         'http://127.0.0.1:5173',
         'http://127.0.0.1:8000',
-        'https://lt-createwebfunitureluxury.onrender.com',
-        'https://tttn-pzaa.onrender.com',
-        'https://tttn-2.onrender.com',
     ],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        '/^https:\/\/.*\.onrender\.com$/',
+    ],
 
     'allowed_headers' => ['*'],
 

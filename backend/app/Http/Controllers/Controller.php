@@ -16,12 +16,12 @@ namespace App\Http\Controllers;
  *     - **user**: Khách hàng (mặc định)."
  * )
  * @OA\Server(
- *     url="http://127.0.0.1:8000/api",
- *     description="API Server Local"
- * )
- * @OA\Server(
- *     url="https://tttn-1.onrender.com/api",
- *     description="API Server Production"
+ *     url="{host}/api",
+ *     description="API Server",
+ *     @OA\ServerVariable(
+ *         serverVariable="host",
+ *         default=L5_SWAGGER_CONST_HOST
+ *     )
  * )
  * @OA\SecurityScheme(
  *     securityScheme="bearerAuth",
