@@ -83,18 +83,104 @@ class AuthController extends Controller
     /**
      * @OA\Post(
      *     path="/login",
-     *     summary="Đăng nhập",
+     *     summary="Đăng nhập hệ thống",
+     *     description="API cho phép người dùng đăng nhập bằng email và mật khẩu. Nếu thông tin hợp lệ, hệ thống sẽ trả về JWT token.",
+     *     operationId="loginUser",
      *     tags={"Auth"},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *         description="Thông tin đăng nhập",
      *         @OA\JsonContent(
      *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", example="user@gmail.com"),
-     *             @OA\Property(property="password", type="string", example="123456")
+     *
+     *             @OA\Property(
+     *                 property="email",
+     *                 type="string",
+     *                 format="email",
+     *                 example="user@gmail.com",
+     *                 description="Email của người dùng"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="password",
+     *                 type="string",
+     *                 format="password",
+     *                 example="123456",
+     *                 description="Mật khẩu đăng nhập"
+     *             )
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Đăng nhập thành công"),
-     *     @OA\Response(response=401, description="Sai email hoặc mật khẩu")
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Đăng nhập thành công",
+     *         @OA\JsonContent(
+     *             type="object",
+     *
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=true
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Đăng nhập thành công"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="token",
+     *                 type="string",
+     *                 example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="user",
+     *                 type="object",
+     *
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Nguyen Van A"),
+     *                 @OA\Property(property="email", type="string", example="user@gmail.com"),
+     *                 @OA\Property(property="is_active", type="boolean", example=true)
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Sai email hoặc mật khẩu",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Email hoặc mật khẩu không đúng")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Tài khoản bị khóa",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Dữ liệu gửi lên không hợp lệ."),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={
+     *                     "email": {"Email không hợp lệ."},
+     *                     "password": {"Mật khẩu không hợp lệ."}
+     *                 }
+     *             )
+     *         )
+     *     )
      * )
      */
     // LOGIN
@@ -149,7 +235,7 @@ class AuthController extends Controller
     }
 
 
-    
+
     /**
      * @OA\Get(
      *     path="/me",
@@ -487,7 +573,7 @@ class AuthController extends Controller
 
     }
 
-    
 
-    
+
+
 }

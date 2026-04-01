@@ -14,18 +14,83 @@ class AdminController extends Controller
     /**
      * @OA\Post(
      *     path="/admin/login",
-     *     summary="Đăng nhập Admin",
+     *     operationId="adminLogin",
      *     tags={"Admin"},
+     *     summary="Đăng nhập Admin",
+     *     description="API cho phép admin đăng nhập vào hệ thống bằng email và mật khẩu. Nếu thông tin hợp lệ, hệ thống sẽ trả về JWT token để sử dụng cho các API yêu cầu xác thực.",
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *         description="Thông tin đăng nhập của admin",
      *         @OA\JsonContent(
      *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", example="admin@gmail.com"),
-     *             @OA\Property(property="password", type="string", example="password")
+     *             @OA\Property(
+     *                 property="email",
+     *                 type="string",
+     *                 format="email",
+     *                 example="admin@gmail.com",
+     *                 description="Email đăng nhập của admin"
+     *             ),
+     *             @OA\Property(
+     *                 property="password",
+     *                 type="string",
+     *                 format="password",
+     *                 example="password",
+     *                 description="Mật khẩu đăng nhập"
+     *             )
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Đăng nhập thành công"),
-     *     @OA\Response(response=401, description="Sai email hoặc mật khẩu")
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Đăng nhập thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="token",
+     *                 type="string",
+     *                 example="eyJ0eXAiOiJKV1QiLCJh..."
+     *             ),
+     *             @OA\Property(
+     *                 property="admin",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Admin"),
+     *                 @OA\Property(property="email", type="string", example="admin@gmail.com"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time", example="2025-01-01T10:00:00Z"),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2025-01-01T10:00:00Z")
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Sai email hoặc mật khẩu",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Email hoặc mật khẩu admin không đúng"
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu gửi lên không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={
+     *                     "email": {"The email field is required."},
+     *                     "password": {"The password field is required."}
+     *                 }
+     *             )
+     *         )
+     *     )
      * )
      */
     public function login(Request $request)

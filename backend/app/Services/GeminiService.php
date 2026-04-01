@@ -10,13 +10,17 @@ class GeminiService
     protected $apiKey;
     protected $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
+    //Khởi tạo apiKey trong file .env
     public function __construct()
     {
         $this->apiKey = config('services.gemini.key');
     }
 
+
     public function generateDescription($productName, $category = '', $material = '')
     {
+        $isLocal = app()->environment('local');
+        
         $prompt = "Bạn là một chuyên gia viết nội dung quảng cáo nội thất cao cấp. 
                    Hãy viết một mô tả sản phẩm hấp dẫn, sang trọng cho sản phẩm sau:
                    Tên: $productName
@@ -31,7 +35,10 @@ class GeminiService
                    5. Tuyệt đối KHÔNG viết tất cả nội dung thành một khối văn bản duy nhất.
                    6. Ngôn ngữ tiếng Việt chuyên nghiệp, sang trọng. Chỉ trả về nội dung mô tả sản phẩm.";
 
-        $response = Http::withoutVerifying()->post("{$this->baseUrl}?key={$this->apiKey}", [
+
+        $response = Http::when($isLocal, function ($http) {
+            return $http->withoutVerifying();
+        })->post("{$this->baseUrl}?key={$this->apiKey}", [
             'contents' => [
                 [
                     'parts' => [
@@ -40,6 +47,15 @@ class GeminiService
                 ]
             ]
         ]);
+        // $response = Http::withoutVerifying()->post("{$this->baseUrl}?key={$this->apiKey}", [
+        //     'contents' => [
+        //         [
+        //             'parts' => [
+        //                 ['text' => $prompt]
+        //             ]
+        //         ]
+        //     ]
+        // ]);
 
         if ($response->successful()) {
             return $response->json('candidates.0.content.parts.0.text');

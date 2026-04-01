@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->string('color', 50)->nullable()->comment('Màu sắc');
             $table->string('size', 50)->nullable()->comment('Kích thước (VD: 1m2x2m, 80cm...)');
+            $table->string('material', 100)->nullable()->comment('Chất liệu');
             $table->decimal('price', 15, 2)->comment('Giá của biến thể');
             $table->unsignedInteger('stock_quantity')->default(0)->comment('Số lượng tồn kho');
             $table->string('sku', 120)->unique();

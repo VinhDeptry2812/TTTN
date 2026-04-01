@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
 use App\Services\GeminiService;
+use App\Services\GeminiVisionService;
+use App\Http\Requests\GeminiVisionRequest;
 
 /**
  * @OA\Info(
@@ -59,69 +61,158 @@ class ProductController extends Controller
     /**
      * @OA\Get(
      *     path="/products",
-     *     summary="Lấy danh sách sản phẩm (Hỗ trợ Lọc, Sắp xếp & Infinite Scrolling)",
-     *     description="API trả về danh sách sản phẩm với cursor-based pagination. Hỗ trợ lọc theo danh mục, khoảng giá và sắp xếp theo nhiều tiêu chí.",
+     *     summary="Lấy danh sách sản phẩm",
+     *     description="API trả về danh sách sản phẩm có hỗ trợ tìm kiếm, lọc, sắp xếp và cursor-based pagination (infinite scrolling). 
+     *     Mặc định chỉ trả về sản phẩm đang hoạt động (is_active = true). 
+     *     Nếu truyền all=true thì trả về tất cả sản phẩm (dành cho admin).",
+     *     operationId="getProducts",
      *     tags={"Products"},
+     *
      *     @OA\Parameter(
      *         name="category_id",
      *         in="query",
-     *         description="Lọc theo ID danh mục sản phẩm",
+     *         description="ID danh mục sản phẩm. Hệ thống sẽ tự động lấy cả danh mục con.",
      *         required=false,
      *         @OA\Schema(type="integer", example=3)
      *     ),
+     *
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Tìm kiếm theo tên sản phẩm hoặc SKU",
+     *         required=false,
+     *         @OA\Schema(type="string", example="iphone")
+     *     ),
+     *
      *     @OA\Parameter(
      *         name="min_price",
      *         in="query",
-     *         description="Giá tối thiểu (lọc base_price >= giá trị này)",
+     *         description="Lọc sản phẩm có giá >= giá trị này",
      *         required=false,
-     *         @OA\Schema(type="number", example=1000000)
+     *         @OA\Schema(type="number", format="float", example=1000000)
      *     ),
+     *
      *     @OA\Parameter(
      *         name="max_price",
      *         in="query",
-     *         description="Giá tối đa (lọc base_price <= giá trị này)",
+     *         description="Lọc sản phẩm có giá <= giá trị này",
      *         required=false,
-     *         @OA\Schema(type="number", example=5000000)
+     *         @OA\Schema(type="number", format="float", example=5000000)
      *     ),
+     *
      *     @OA\Parameter(
      *         name="sort_by",
      *         in="query",
-     *         description="Trường sắp xếp. Chỉ chấp nhận: base_price, name, created_at (mặc định: created_at)",
+     *         description="Trường dùng để sắp xếp",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"base_price", "name", "created_at"}, default="created_at")
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"base_price","name","created_at"},
+     *             default="created_at"
+     *         )
      *     ),
+     *
      *     @OA\Parameter(
      *         name="sort_order",
      *         in="query",
-     *         description="Thứ tự sắp xếp: asc (tăng dần) hoặc desc (giảm dần, mặc định)",
+     *         description="Thứ tự sắp xếp",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"asc", "desc"}, default="desc")
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"asc","desc"},
+     *             default="desc"
+     *         )
      *     ),
+     *
      *     @OA\Parameter(
      *         name="cursor",
      *         in="query",
-     *         description="Mã cursor để lấy trang tiếp theo (lấy từ next_page_url của response trước)",
+     *         description="Cursor dùng cho cursor pagination để lấy trang tiếp theo",
      *         required=false,
      *         @OA\Schema(type="string")
      *     ),
+     *
+     *     @OA\Parameter(
+     *         name="all",
+     *         in="query",
+     *         description="Nếu true thì trả về tất cả sản phẩm (bao gồm cả sản phẩm ẩn). Dành cho admin.",
+     *         required=false,
+     *         @OA\Schema(type="boolean", example=false)
+     *     ),
+     *
      *     @OA\Response(
      *         response=200,
-     *         description="Trả về danh sách sản phẩm thành công",
+     *         description="Danh sách sản phẩm",
      *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Product")),
-     *             @OA\Property(property="path", type="string", description="URL hiện tại"),
-     *             @OA\Property(property="per_page", type="integer", description="Số lượng mỗi trang"),
-     *             @OA\Property(property="next_cursor", type="string", nullable=true, description="Cursor cho trang tiếp theo"),
-     *             @OA\Property(property="next_page_url", type="string", nullable=true, description="Link trang tiếp theo"),
-     *             @OA\Property(property="prev_cursor", type="string", nullable=true, description="Cursor cho trang trước"),
-     *             @OA\Property(property="prev_page_url", type="string", nullable=true, description="Link trang trước")
+     *
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 description="Danh sách sản phẩm",
+     *                 @OA\Items(ref="#/components/schemas/Product")
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="path",
+     *                 type="string",
+     *                 example="http://localhost/api/products"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="per_page",
+     *                 type="integer",
+     *                 example=12,
+     *                 description="Số lượng sản phẩm mỗi trang"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="next_cursor",
+     *                 type="string",
+     *                 nullable=true,
+     *                 example="eyJpZCI6MTJ9",
+     *                 description="Cursor cho trang tiếp theo"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="next_page_url",
+     *                 type="string",
+     *                 nullable=true,
+     *                 example="http://localhost/api/products?cursor=eyJpZCI6MTJ9",
+     *                 description="URL trang tiếp theo"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="prev_cursor",
+     *                 type="string",
+     *                 nullable=true,
+     *                 example=null,
+     *                 description="Cursor trang trước"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="prev_page_url",
+     *                 type="string",
+     *                 nullable=true,
+     *                 example=null,
+     *                 description="URL trang trước"
+     *             )
      *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=400,
+     *         description="Tham số không hợp lệ"
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi server"
      *     )
      * )
      */
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $query = Product::with(['category', 'variants']);
 
         // Admin gửi all=true -> không lọc is_active, trả hết
         // FE public mặc định chỉ hiển thị sản phẩm đang bán
@@ -160,11 +251,18 @@ class ProductController extends Controller
             $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
         }
 
+        // Đếm tổng số sản phẩm thỏa mãn điều kiện lọc (Trước khi phân trang)
+        $countQuery = clone $query;
+        $total = $countQuery->count();
+
         // Admin: phân trang truyền thống (10 SP/trang), hiển thị cả SP ẩn
         if ($request->boolean('all')) {
             $products = $query->orderBy('id')->paginate(10);
             $products->appends($request->only(['category_id', 'min_price', 'max_price', 'sort_by', 'sort_order', 'all']));
-            return response()->json($products);
+            
+            $responseData = $products->toArray();
+            $responseData['total'] = $total; // Thống nhất trường total
+            return response()->json($responseData);
         }
 
         // Luôn thêm orderBy id để cursor pagination không bỏ sót dữ liệu
@@ -173,7 +271,11 @@ class ProductController extends Controller
         // Phân trang bằng cursor pagination (12 sản phẩm mỗi trang)
         $products = $query->cursorPaginate(12);
 
-        return response()->json($products);
+        // Ép kiểu sang Array để bổ sung trường 'total' cho CursorPaginator
+        $responseData = $products->toArray();
+        $responseData['total'] = $total;
+
+        return response()->json($responseData);
     }
 
     /**
@@ -350,7 +452,7 @@ class ProductController extends Controller
     }
 
 
-    
+
     /**
      * @OA\Post(
      *     path="/products/generate-ai-description",
@@ -404,5 +506,62 @@ class ProductController extends Controller
             return response()->json(['message' => 'Không thể tạo mô tả lúc này'], 500);
         }
         return response()->json(['description' => $description]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/products/detect-ai",
+     *     summary="Nhận diện sản phẩm từ hình ảnh sử dụng Gemini Vision",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="image",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="File hình ảnh sản phẩm (jpg, png...)"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Kết quả nhận diện thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="product_name", type="string"),
+     *             @OA\Property(property="category", type="string"),
+     *             @OA\Property(property="material", type="string"),
+     *             @OA\Property(property="color", type="string"),
+     *             @OA\Property(property="style", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Dữ liệu không hợp lệ"),
+     *     @OA\Response(response=500, description="Lỗi hệ thống hoặc API")
+     * )
+     */
+    public function detectAI(GeminiVisionRequest $request, GeminiVisionService $geminiVision)
+    {
+        $image = $request->file('image');
+        $path = $image->getRealPath();
+        $mimeType = $image->getMimeType();
+
+        $result = $geminiVision->identifyProductFromImage($path, $mimeType);
+
+        if (!$result) {
+            return response()->json(['message' => 'Không thể nhận diện hình ảnh lúc này'], 500);
+        }
+
+        // Kiểm tra nếu không phải đồ nội thất
+        if (isset($result['is_furniture']) && $result['is_furniture'] === false) {
+            return response()->json([
+                'message' => $result['error'] ?? 'Hình ảnh không phải là đồ nội thất.'
+            ], 422);
+        }
+
+        return response()->json($result);
     }
 }

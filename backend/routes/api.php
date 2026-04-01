@@ -79,6 +79,7 @@ Route::middleware('auth:admin-api')->group(function () {
     Route::middleware('role.admin:superadmin,admin')->group(function () {
         // Generate AI Description
         Route::post('/products/generate-ai-description', [ProductController::class, 'generateAIDescription']);
+        Route::post('/products/detect-ai', [ProductController::class, 'detectAI']);
 
         // Quản lý Sản phẩm
         Route::post('/products/create', [ProductController::class, 'store']);
