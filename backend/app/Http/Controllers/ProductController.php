@@ -16,18 +16,6 @@ use App\Services\GeminiVisionService;
 use App\Http\Requests\GeminiVisionRequest;
 
 /**
- * @OA\Info(
- *     title="API HỆ THỐNG NỘI THẤT NHÓM MÌNH",
- *     version="1.0.0",
- *     description="Hệ thống API hỗ trợ phân quyền người dùng (RBAC). 
- *     
- *     ### Danh sách Vai trò (Roles):
- *     - **superadmin**: Quyền cao nhất, quản lý toàn bộ hệ thống bao gồm cả nhân viên và khách hàng.
- *     - **admin**: Quản lý nghiệp vụ chính (Sản phẩm, Danh mục, Đơn hàng).
- *     - **staff**: Nhân viên vận hành, xem báo cáo và thực hiện các tác vụ được chỉ định.
- *     - **user**: Khách hàng (mặc định)."
- * )
- * 
  * @OA\Schema(
  *     schema="Product",
  *     title="Product",
@@ -47,13 +35,6 @@ use App\Http\Requests\GeminiVisionRequest;
  *     @OA\Property(property="is_featured", type="boolean", example=false, description="Sản phẩm nổi bật/xu hướng"),
  *     @OA\Property(property="category", ref="#/components/schemas/Category"),
  *     @OA\Property(property="variants", type="array", @OA\Items(ref="#/components/schemas/ProductVariant"))
- * )
- * 
- * @OA\SecurityScheme(
- *     securityScheme="bearerAuth",
- *     type="http",
- *     scheme="bearer",
- *     bearerFormat="JWT"
  * )
  */
 class ProductController extends Controller
@@ -84,6 +65,13 @@ class ProductController extends Controller
      *         @OA\Schema(type="string", example="iphone")
      *     ),
      *
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Tìm kiếm theo tên sản phẩm hoặc SKU",
+     *         required=false,
+     *         @OA\Schema(type="string", example="iphone")
+     *     ),
      *     @OA\Parameter(
      *         name="min_price",
      *         in="query",
@@ -326,7 +314,8 @@ class ProductController extends Controller
      *                 @OA\Property(property="description", type="string", example="Mô tả chi tiết sản phẩm"),
      *                 @OA\Property(property="base_price", type="number", example=5000000),
      *                 @OA\Property(property="sale_price", type="number", nullable=true),
-     *                 @OA\Property(property="category_id", type="integer", example=3),
+     *                 @OA\Property(property="sku", type="string", example="SKU12345"),
+     *                 @OA\Property(property="category_id", type="integer", example=3)  ,
      *                 @OA\Property(property="image", type="string", format="binary")
      *             )
      *         )

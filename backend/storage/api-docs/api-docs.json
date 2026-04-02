@@ -7,6 +7,15 @@
     },
     "servers": [
         {
+            "url": "{host}/api",
+            "description": "API Server",
+            "variables": {
+                "host": {
+                    "default": "http://127.0.0.1:8000"
+                }
+            }
+        },
+        {
             "url": "/api"
         }
     ],
@@ -1656,6 +1665,118 @@
                 ]
             }
         },
+        "/admin/coupons": {
+            "get": {
+                "tags": [
+                    "Admin Coupons"
+                ],
+                "summary": "Danh sách mã giảm giá (Admin)",
+                "operationId": "cc6c9c46f7a96f7c0562fa7780aa9cc6",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Coupon"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Coupons"
+                ],
+                "summary": "Tạo mã giảm giá mới (Admin)",
+                "operationId": "5d0d413aff7250cae5d5241460a98dca",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Coupon"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Coupon"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/coupons/apply": {
+            "post": {
+                "tags": [
+                    "Coupons"
+                ],
+                "summary": "Áp dụng mã giảm giá cho giỏ hàng (User)",
+                "operationId": "8e62f29555a9df5dc4af0824b8c49c4e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "code",
+                                    "order_amount"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "SUMMER2024"
+                                    },
+                                    "order_amount": {
+                                        "type": "number",
+                                        "example": 200000
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    },
+                    "422": {
+                        "description": "Mã không hợp lệ hoặc không đủ điều kiện"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/auth/facebook": {
             "get": {
                 "tags": [
@@ -1682,6 +1803,78 @@
                         "description": "Redirect về Frontend kèm token hoặc lỗi"
                     }
                 }
+            }
+        },
+        "/checkout": {
+            "post": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Đồ uống đơn hàng (Checkout)",
+                "operationId": "6ed91804beb738578b8d4c98f822dbbf",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "receiver_name",
+                                    "receiver_phone",
+                                    "shipping_address",
+                                    "payment_method"
+                                ],
+                                "properties": {
+                                    "receiver_name": {
+                                        "type": "string",
+                                        "example": "Nguyen Van A"
+                                    },
+                                    "receiver_phone": {
+                                        "type": "string",
+                                        "example": "0123456789"
+                                    },
+                                    "shipping_address": {
+                                        "type": "string",
+                                        "example": "123 Duong ABC, Quan 1, TP.HCM"
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "cod",
+                                            "bank_transfer",
+                                            "momo",
+                                            "vnpay"
+                                        ],
+                                        "example": "cod"
+                                    },
+                                    "coupon_code": {
+                                        "type": "string",
+                                        "example": "SUMMER2024",
+                                        "nullable": true
+                                    },
+                                    "note": {
+                                        "type": "string",
+                                        "example": "Giao gio hanh chinh",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Đặt hàng thành công"
+                    },
+                    "422": {
+                        "description": "Lỗi validation hoặc mã giảm giá không hợp lệ"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/products": {
@@ -2018,6 +2211,10 @@
                                     "sale_price": {
                                         "type": "number",
                                         "nullable": true
+                                    },
+                                    "sku": {
+                                        "type": "string",
+                                        "example": "SKU12345"
                                     },
                                     "category_id": {
                                         "type": "integer",
@@ -3346,6 +3543,75 @@
                 },
                 "type": "object"
             },
+            "Coupon": {
+                "title": "Coupon",
+                "required": [
+                    "code",
+                    "type",
+                    "value",
+                    "start_date",
+                    "end_date"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "SUMMER2024"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "percent",
+                            "fixed"
+                        ],
+                        "example": "percent"
+                    },
+                    "value": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 10.5
+                    },
+                    "min_order_amount": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 100000,
+                        "nullable": true
+                    },
+                    "max_discount": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 50000,
+                        "nullable": true
+                    },
+                    "usage_limit": {
+                        "type": "integer",
+                        "example": 100,
+                        "nullable": true
+                    },
+                    "used_count": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2024-01-01"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2024-12-31"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "type": "object"
+            },
             "Product": {
                 "title": "Product",
                 "description": "Mô hình Sản phẩm",
@@ -3599,6 +3865,7 @@
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
+                "description": "Nhập JWT token vào đây để thực hiện các yêu cầu có bảo mật.",
                 "bearerFormat": "JWT",
                 "scheme": "bearer"
             }
@@ -3624,6 +3891,18 @@
         {
             "name": "Categories",
             "description": "Categories"
+        },
+        {
+            "name": "Admin Coupons",
+            "description": "Admin Coupons"
+        },
+        {
+            "name": "Coupons",
+            "description": "Coupons"
+        },
+        {
+            "name": "Orders",
+            "description": "Orders"
         },
         {
             "name": "Products",
