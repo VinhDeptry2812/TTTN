@@ -23,7 +23,7 @@ class UpdateAdminRequest extends FormRequest
      */
     public function rules(): array
     {
-        $adminId = $this->route('admin');
+        $adminId = $this->route('id');
 
         return [
             'name' => 'sometimes|string|max:255',
