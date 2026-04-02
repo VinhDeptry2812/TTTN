@@ -210,7 +210,8 @@ class ProductController extends Controller
      *                 @OA\Property(property="description", type="string", example="Mô tả chi tiết sản phẩm"),
      *                 @OA\Property(property="base_price", type="number", example=5000000),
      *                 @OA\Property(property="sale_price", type="number", nullable=true),
-     *                 @OA\Property(property="category_id", type="integer", example=3),
+     *                 @OA\Property(property="sku", type="string", example="SKU12345"),
+     *                 @OA\Property(property="category_id", type="integer", example=3)  ,
      *                 @OA\Property(property="image", type="string", format="binary")
      *             )
      *         )

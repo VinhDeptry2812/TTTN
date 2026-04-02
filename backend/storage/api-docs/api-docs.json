@@ -1866,6 +1866,10 @@
                                         "type": "number",
                                         "nullable": true
                                     },
+                                    "sku": {
+                                        "type": "string",
+                                        "example": "SKU12345"
+                                    },
                                     "category_id": {
                                         "type": "integer",
                                         "example": 3
