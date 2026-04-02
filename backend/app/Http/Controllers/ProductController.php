@@ -49,6 +49,13 @@ class ProductController extends Controller
      *         @OA\Schema(type="integer", example=3)
      *     ),
      *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Tìm kiếm theo tên sản phẩm hoặc SKU",
+     *         required=false,
+     *         @OA\Schema(type="string", example="iphone")
+     *     ),
+     *     @OA\Parameter(
      *         name="min_price",
      *         in="query",
      *         description="Giá tối thiểu (lọc base_price >= giá trị này)",

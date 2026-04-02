@@ -1575,6 +1575,16 @@
                         }
                     },
                     {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Tìm kiếm theo tên sản phẩm hoặc SKU",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "iphone"
+                        }
+                    },
+                    {
                         "name": "min_price",
                         "in": "query",
                         "description": "Giá tối thiểu (lọc base_price >= giá trị này)",
