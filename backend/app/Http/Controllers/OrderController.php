@@ -25,7 +25,7 @@ class OrderController extends Controller
     /**
      * @OA\Post(
      *     path="/checkout",
-     *     summary="Đồ uống đơn hàng (Checkout)",
+     *     summary="Đơn hàng cần Checkout",
      *     tags={"Orders"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
@@ -85,6 +85,20 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
+            // 1. Kiểm tra tồn kho và tính khả dụng (với Lock để tránh tranh chấp)
+            foreach ($cart->items as $cartItem) {
+                $variant = $cartItem->variant()->lockForUpdate()->first();
+
+                if (!$variant || !$variant->is_available) {
+                    throw new Exception("Sản phẩm '{$cartItem->product->name}' ({$variant->sku}) hiện không khả dụng.");
+                }
+
+                if ($variant->stock_quantity < $cartItem->quantity) {
+                    throw new Exception("Sản phẩm '{$cartItem->product->name}' ({$variant->sku}) không đủ số lượng trong kho (Còn: {$variant->stock_quantity}).");
+                }
+            }
+
+            // 2. Tạo đơn hàng chính
             $order = Order::create([
                 'user_id' => $user->id,
                 'coupon_id' => $couponId,
@@ -102,7 +116,9 @@ class OrderController extends Controller
                 'note' => $request->note,
             ]);
 
+            // 3. Xử lý từng item: Tạo OrderItem và Trừ kho
             foreach ($cart->items as $cartItem) {
+                // Tạo chi tiết đơn hàng
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
@@ -113,14 +129,18 @@ class OrderController extends Controller
                     'quantity' => $cartItem->quantity,
                     'subtotal' => $cartItem->quantity * ($cartItem->variant->sale_price ?? $cartItem->variant->price),
                 ]);
+
+                // Trừ số lượng tồn kho
+                $variant = $cartItem->variant;
+                $variant->decrement('stock_quantity', $cartItem->quantity);
             }
 
-            // Nếu có mã giảm giá, tăng used_count
+            // 4. Nếu có mã giảm giá, áp dụng (tăng used_count)
             if ($couponId) {
                 $this->discountService->applyCoupon($request->coupon_code);
             }
 
-            // Xóa giỏ hàng
+            // 5. Xóa giỏ hàng sau khi đặt thành công
             $cart->items()->delete();
             $cart->delete();
 
@@ -136,7 +156,7 @@ class OrderController extends Controller
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra: ' . $e->getMessage()
+                'message' => 'Lỗi đặt hàng: ' . $e->getMessage()
             ], 500);
         }
     }
