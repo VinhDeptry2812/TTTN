@@ -32,4 +32,14 @@ class Product extends Model
     {
         return $this->hasMany(\App\Models\ProductVariant::class);
     }
+
+    public function images()
+    {
+        return $this->hasMany(\App\Models\ProductImage::class)->orderBy('sort_order', 'asc');
+    }
+
+    public function getImageUrlAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null;
+    }
 }

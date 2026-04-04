@@ -2592,8 +2592,17 @@
                                         "type": "integer"
                                     },
                                     "image": {
+                                        "description": "Ảnh đại diện mới",
                                         "type": "string",
                                         "format": "binary"
+                                    },
+                                    "gallery_images[]": {
+                                        "description": "Danh sách ảnh phụ mới (Sẽ ghi đè ảnh cũ)",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
                                     }
                                 },
                                 "type": "object"
@@ -2729,8 +2738,17 @@
                                         "example": 3
                                     },
                                     "image": {
+                                        "description": "Ảnh đại diện (Sẽ được nén webp)",
                                         "type": "string",
                                         "format": "binary"
+                                    },
+                                    "gallery_images[]": {
+                                        "description": "Danh sách ảnh phụ (Tối đa 5)",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
                                     }
                                 },
                                 "type": "object"

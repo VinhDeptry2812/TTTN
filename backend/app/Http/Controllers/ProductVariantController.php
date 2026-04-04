@@ -7,6 +7,8 @@ use App\Models\ProductVariant;
 use App\Http\Requests\StoreProductVariantRequest;
 use App\Http\Requests\UpdateProductVariantRequest;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 
 /**
@@ -115,7 +117,17 @@ class ProductVariantController extends Controller
         $validated['product_id'] = $productId;
 
         if ($request->hasFile('image')) {
-            $validated['image_url'] = $request->file('image')->store('variants', 'public');
+            $manager = new ImageManager(new Driver());
+            $imageFile = $request->file('image');
+            $fileName = 'variants/' . uniqid() . '_' . time() . '.webp';
+            
+            $image = $manager->read($imageFile);
+            if ($image->width() > 1000) {
+                $image->scale(width: 1000);
+            }
+            $encoded = $image->toWebp(80);
+            Storage::disk('public')->put($fileName, (string) $encoded);
+            $validated['image_url'] = $fileName;
         }
 
         $variant = ProductVariant::create($validated);
@@ -173,10 +185,20 @@ class ProductVariantController extends Controller
         $validated = $request->validated();
 
         if ($request->hasFile('image')) {
-            if ($variant->image_url) {
-                Storage::disk('public')->delete($variant->image_url);
+            if ($variant->getRawOriginal('image_url')) {
+                Storage::disk('public')->delete($variant->getRawOriginal('image_url'));
             }
-            $validated['image_url'] = $request->file('image')->store('variants', 'public');
+            $manager = new ImageManager(new Driver());
+            $imageFile = $request->file('image');
+            $fileName = 'variants/' . uniqid() . '_' . time() . '.webp';
+            
+            $image = $manager->read($imageFile);
+            if ($image->width() > 1000) {
+                $image->scale(width: 1000);
+            }
+            $encoded = $image->toWebp(80);
+            Storage::disk('public')->put($fileName, (string) $encoded);
+            $validated['image_url'] = $fileName;
         }
 
         $variant->update($validated);
@@ -215,8 +237,8 @@ class ProductVariantController extends Controller
         }
 
         // Xóa ảnh của biến thể nếu có
-        if ($variant->image_url) {
-            Storage::disk('public')->delete($variant->image_url);
+        if ($variant->getRawOriginal('image_url')) {
+            Storage::disk('public')->delete($variant->getRawOriginal('image_url'));
         }
 
         $variant->delete();

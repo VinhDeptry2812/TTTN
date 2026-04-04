@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Services\GeminiService;
 use App\Services\GeminiVisionService;
 use App\Http\Requests\GeminiVisionRequest;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 /**
  * @OA\Schema(
@@ -278,7 +280,7 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $product = Product::with(['category', 'variants'])->find($id);
+        $product = Product::with(['category', 'variants', 'images'])->find($id);
         if (!$product) {
             return response()->json([
                 'success' => false,
@@ -309,7 +311,8 @@ class ProductController extends Controller
      *                 @OA\Property(property="sale_price", type="number", nullable=true),
      *                 @OA\Property(property="sku", type="string", example="SKU12345"),
      *                 @OA\Property(property="category_id", type="integer", example=3)  ,
-     *                 @OA\Property(property="image", type="string", format="binary")
+     *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện (Sẽ được nén webp)"),
+     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ (Tối đa 5)")
      *             )
      *         )
      *     ),
@@ -332,12 +335,47 @@ class ProductController extends Controller
 
         $validatedData['slug'] = Str::slug($request->name) . '-' . time();
 
+        $manager = new ImageManager(new Driver());
+
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
-            $validatedData['image_url'] = $imagePath;
+            $imageFile = $request->file('image');
+            $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
+            
+            $image = $manager->read($imageFile);
+            if ($image->width() > 1000) {
+                $image->scale(width: 1000);
+            }
+            $encoded = $image->toWebp(80);
+            
+            Storage::disk('public')->put($fileName, (string) $encoded);
+            
+            $validatedData['image_url'] = $fileName;
         }
 
         $product = Product::create($validatedData);
+
+        // Upload gallery images
+        if ($request->hasFile('gallery_images')) {
+            foreach ($request->file('gallery_images') as $index => $galleryImage) {
+                $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
+                
+                $img = $manager->read($galleryImage);
+                if ($img->width() > 1000) {
+                    $img->scale(width: 1000);
+                }
+                $encoded = $img->toWebp(80);
+                
+                Storage::disk('public')->put($fileName, (string) $encoded);
+                
+                $product->images()->create([
+                    'image_url' => $fileName,
+                    'is_primary' => false,
+                    'sort_order' => $index
+                ]);
+            }
+        }
+
+        $product->load('images');
 
         return response()->json([
             'success' => true,
@@ -364,7 +402,8 @@ class ProductController extends Controller
      *                 @OA\Property(property="description", type="string"),
      *                 @OA\Property(property="base_price", type="number"),
      *                 @OA\Property(property="category_id", type="integer"),
-     *                 @OA\Property(property="image", type="string", format="binary")
+     *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện mới"),
+     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ mới (Sẽ ghi đè ảnh cũ)")
      *             )
      *         )
      *     ),
@@ -388,16 +427,58 @@ class ProductController extends Controller
         }
 
         $validatedData = $request->validated();
+        $manager = new ImageManager(new Driver());
 
         if ($request->hasFile('image')) {
-            if ($product->image_url) {
-                Storage::disk('public')->delete($product->image_url);
+            // Delete old primary image correctly using raw path
+            if ($product->getRawOriginal('image_url')) {
+                Storage::disk('public')->delete($product->getRawOriginal('image_url'));
             }
-            $imagePath = $request->file('image')->store('products', 'public');
-            $validatedData['image_url'] = $imagePath;
+            
+            $imageFile = $request->file('image');
+            $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
+            
+            $image = $manager->read($imageFile);
+            if ($image->width() > 1000) {
+                $image->scale(width: 1000);
+            }
+            $encoded = $image->toWebp(80);
+            
+            Storage::disk('public')->put($fileName, (string) $encoded);
+            $validatedData['image_url'] = $fileName;
         }
 
         $product->update($validatedData);
+
+        if ($request->hasFile('gallery_images')) {
+            // Replace all existing gallery images
+            foreach ($product->images as $oldImage) {
+                if ($oldImage->getRawOriginal('image_url')) {
+                    Storage::disk('public')->delete($oldImage->getRawOriginal('image_url'));
+                }
+                $oldImage->delete(); // Or permanent delete since the record logic uses soft delete maybe
+            }
+
+            foreach ($request->file('gallery_images') as $index => $galleryImage) {
+                $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
+                
+                $img = $manager->read($galleryImage);
+                if ($img->width() > 1000) {
+                    $img->scale(width: 1000);
+                }
+                $encoded = $img->toWebp(80);
+                
+                Storage::disk('public')->put($fileName, (string) $encoded);
+                
+                $product->images()->create([
+                    'image_url' => $fileName,
+                    'is_primary' => false,
+                    'sort_order' => $index
+                ]);
+            }
+        }
+
+        $product->load('images');
 
         return response()->json([
             'success' => true,
