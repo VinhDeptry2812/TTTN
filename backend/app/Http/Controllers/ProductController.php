@@ -17,6 +17,7 @@ use App\Services\GeminiVisionService;
 use App\Http\Requests\GeminiVisionRequest;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Format;
 
 /**
  * @OA\Schema(
@@ -344,11 +345,11 @@ class ProductController extends Controller
                 $imageFile = $request->file('image');
                 $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
                 
-                $image = $manager->read($imageFile);
+                $image = $manager->decode($imageFile);
                 if ($image->width() > 1000) {
                     $image->scale(width: 1000);
                 }
-                $encoded = $image->toWebp(80);
+                $encoded = $image->encodeUsingFormat(Format::WEBP, quality: 80);
                 
                 Storage::disk('public')->put($fileName, (string) $encoded);
                 
@@ -361,11 +362,11 @@ class ProductController extends Controller
                 foreach ($request->file('gallery_images') as $index => $galleryImage) {
                     $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
                     
-                    $img = $manager->read($galleryImage);
+                    $img = $manager->decode($galleryImage);
                     if ($img->width() > 1000) {
                         $img->scale(width: 1000);
                     }
-                    $encoded = $img->toWebp(80);
+                    $encoded = $img->encodeUsingFormat(Format::WEBP, quality: 80);
                     
                     Storage::disk('public')->put($fileName, (string) $encoded);
                     
@@ -455,11 +456,11 @@ class ProductController extends Controller
                 $imageFile = $request->file('image');
                 $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
                 
-                $image = $manager->read($imageFile);
+                $image = $manager->decode($imageFile);
                 if ($image->width() > 1000) {
                     $image->scale(width: 1000);
                 }
-                $encoded = $image->toWebp(80);
+                $encoded = $image->encodeUsingFormat(Format::WEBP, quality: 80);
                 
                 Storage::disk('public')->put($fileName, (string) $encoded);
                 $validatedData['image_url'] = $fileName;
@@ -489,11 +490,11 @@ class ProductController extends Controller
                 foreach ($request->file('gallery_images') as $index => $galleryImage) {
                     $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
                     
-                    $img = $manager->read($galleryImage);
+                    $img = $manager->decode($galleryImage);
                     if ($img->width() > 1000) {
                         $img->scale(width: 1000);
                     }
-                    $encoded = $img->toWebp(80);
+                    $encoded = $img->encodeUsingFormat(Format::WEBP, quality: 80);
                     
                     Storage::disk('public')->put($fileName, (string) $encoded);
                     
