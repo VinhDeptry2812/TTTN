@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Support\Str;
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use App\Services\GeminiService;
 use App\Services\GeminiVisionService;
 use App\Http\Requests\GeminiVisionRequest;
@@ -332,56 +333,67 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         $validatedData = $request->validated();
-
         $validatedData['slug'] = Str::slug($request->name) . '-' . time();
 
-        $manager = new ImageManager(new Driver());
+        DB::beginTransaction();
 
-        if ($request->hasFile('image')) {
-            $imageFile = $request->file('image');
-            $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
-            
-            $image = $manager->read($imageFile);
-            if ($image->width() > 1000) {
-                $image->scale(width: 1000);
-            }
-            $encoded = $image->toWebp(80);
-            
-            Storage::disk('public')->put($fileName, (string) $encoded);
-            
-            $validatedData['image_url'] = $fileName;
-        }
+        try {
+            $manager = new ImageManager(new Driver());
 
-        $product = Product::create($validatedData);
-
-        // Upload gallery images
-        if ($request->hasFile('gallery_images')) {
-            foreach ($request->file('gallery_images') as $index => $galleryImage) {
-                $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
+            if ($request->hasFile('image')) {
+                $imageFile = $request->file('image');
+                $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
                 
-                $img = $manager->read($galleryImage);
-                if ($img->width() > 1000) {
-                    $img->scale(width: 1000);
+                $image = $manager->read($imageFile);
+                if ($image->width() > 1000) {
+                    $image->scale(width: 1000);
                 }
-                $encoded = $img->toWebp(80);
+                $encoded = $image->toWebp(80);
                 
                 Storage::disk('public')->put($fileName, (string) $encoded);
                 
-                $product->images()->create([
-                    'image_url' => $fileName,
-                    'is_primary' => false,
-                    'sort_order' => $index
-                ]);
+                $validatedData['image_url'] = $fileName;
             }
+
+            $product = Product::create($validatedData);
+
+            if ($request->hasFile('gallery_images')) {
+                foreach ($request->file('gallery_images') as $index => $galleryImage) {
+                    $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
+                    
+                    $img = $manager->read($galleryImage);
+                    if ($img->width() > 1000) {
+                        $img->scale(width: 1000);
+                    }
+                    $encoded = $img->toWebp(80);
+                    
+                    Storage::disk('public')->put($fileName, (string) $encoded);
+                    
+                    $product->images()->create([
+                        'image_url' => $fileName,
+                        'is_primary' => false,
+                        'sort_order' => $index
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            $product->load('images');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sản phẩm đã được tạo thành công!',
+                'product' => $product
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi xử lý hệ thống/hình ảnh: ' . $e->getMessage()
+            ], 500);
         }
-
-        $product->load('images');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Sản phẩm đã được tạo thành công!',
-            'product' => $product
-        ], 201);
     }
 
     /**
@@ -403,7 +415,8 @@ class ProductController extends Controller
      *                 @OA\Property(property="base_price", type="number"),
      *                 @OA\Property(property="category_id", type="integer"),
      *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện mới"),
-     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ mới (Sẽ ghi đè ảnh cũ)")
+     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ mới (Sẽ được thêm vào list ảnh)"),
+     *                 @OA\Property(property="delete_gallery_image_ids[]", type="array", @OA\Items(type="integer"), description="Danh sách ID của các ảnh phụ muốn xóa")
      *             )
      *         )
      *     ),
@@ -427,64 +440,88 @@ class ProductController extends Controller
         }
 
         $validatedData = $request->validated();
-        $manager = new ImageManager(new Driver());
+        
+        DB::beginTransaction();
 
-        if ($request->hasFile('image')) {
-            // Delete old primary image correctly using raw path
-            if ($product->getRawOriginal('image_url')) {
-                Storage::disk('public')->delete($product->getRawOriginal('image_url'));
-            }
-            
-            $imageFile = $request->file('image');
-            $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
-            
-            $image = $manager->read($imageFile);
-            if ($image->width() > 1000) {
-                $image->scale(width: 1000);
-            }
-            $encoded = $image->toWebp(80);
-            
-            Storage::disk('public')->put($fileName, (string) $encoded);
-            $validatedData['image_url'] = $fileName;
-        }
+        try {
+            $manager = new ImageManager(new Driver());
 
-        $product->update($validatedData);
-
-        if ($request->hasFile('gallery_images')) {
-            // Replace all existing gallery images
-            foreach ($product->images as $oldImage) {
-                if ($oldImage->getRawOriginal('image_url')) {
-                    Storage::disk('public')->delete($oldImage->getRawOriginal('image_url'));
+            if ($request->hasFile('image')) {
+                // Delete old primary image correctly using raw path
+                if ($product->getRawOriginal('image_url')) {
+                    Storage::disk('public')->delete($product->getRawOriginal('image_url'));
                 }
-                $oldImage->delete(); // Or permanent delete since the record logic uses soft delete maybe
-            }
-
-            foreach ($request->file('gallery_images') as $index => $galleryImage) {
-                $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
                 
-                $img = $manager->read($galleryImage);
-                if ($img->width() > 1000) {
-                    $img->scale(width: 1000);
+                $imageFile = $request->file('image');
+                $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
+                
+                $image = $manager->read($imageFile);
+                if ($image->width() > 1000) {
+                    $image->scale(width: 1000);
                 }
-                $encoded = $img->toWebp(80);
+                $encoded = $image->toWebp(80);
                 
                 Storage::disk('public')->put($fileName, (string) $encoded);
-                
-                $product->images()->create([
-                    'image_url' => $fileName,
-                    'is_primary' => false,
-                    'sort_order' => $index
-                ]);
+                $validatedData['image_url'] = $fileName;
             }
+
+            $product->update($validatedData);
+
+            // Xoá các ảnh phụ bị chỉ định xoá
+            if ($request->has('delete_gallery_image_ids')) {
+                $deleteIds = $request->input('delete_gallery_image_ids');
+                if (is_array($deleteIds)) {
+                    $imagesToDelete = $product->images()->whereIn('id', $deleteIds)->get();
+                    foreach ($imagesToDelete as $oldImage) {
+                        if ($oldImage->getRawOriginal('image_url')) {
+                            Storage::disk('public')->delete($oldImage->getRawOriginal('image_url'));
+                        }
+                        $oldImage->forceDelete();
+                    }
+                }
+            }
+
+            // Thêm các ảnh phụ mới
+            if ($request->hasFile('gallery_images')) {
+                // Lấy sort_order lớn nhất hiện tại để tiếp tục
+                $maxSortOrder = $product->images()->max('sort_order') ?? -1;
+
+                foreach ($request->file('gallery_images') as $index => $galleryImage) {
+                    $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
+                    
+                    $img = $manager->read($galleryImage);
+                    if ($img->width() > 1000) {
+                        $img->scale(width: 1000);
+                    }
+                    $encoded = $img->toWebp(80);
+                    
+                    Storage::disk('public')->put($fileName, (string) $encoded);
+                    
+                    $product->images()->create([
+                        'image_url' => $fileName,
+                        'is_primary' => false,
+                        'sort_order' => $maxSortOrder + $index + 1
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            $product->load('images');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sản phẩm đã được cập nhật thành công!',
+                'product' => $product
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi xử lý hệ thống/hình ảnh: ' . $e->getMessage()
+            ], 500);
         }
-
-        $product->load('images');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Sản phẩm đã được cập nhật thành công!',
-            'product' => $product
-        ]);
     }
 
     /**

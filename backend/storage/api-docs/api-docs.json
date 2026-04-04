@@ -2234,7 +2234,7 @@
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Đồ uống đơn hàng (Checkout)",
+                "summary": "Thanh toán đơn hàng (Checkout)",
                 "operationId": "6ed91804beb738578b8d4c98f822dbbf",
                 "requestBody": {
                     "required": true,
