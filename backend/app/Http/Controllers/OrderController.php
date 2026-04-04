@@ -16,10 +16,12 @@ use Exception;
 class OrderController extends Controller
 {
     protected $discountService;
+    protected $shippingService;
 
-    public function __construct(DiscountService $discountService)
+    public function __construct(DiscountService $discountService, ShippingService $shippingService)
     {
         $this->discountService = $discountService;
+        $this->shippingService = $shippingService;
     }
 
     /**
@@ -31,10 +33,13 @@ class OrderController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"receiver_name", "receiver_phone", "shipping_address", "payment_method"},
+     *             required={"receiver_name", "receiver_phone", "province_id", "district_id", "ward_id", "address_detail", "payment_method"},
      *             @OA\Property(property="receiver_name", type="string", example="Nguyen Van A"),
      *             @OA\Property(property="receiver_phone", type="string", example="0123456789"),
-     *             @OA\Property(property="shipping_address", type="string", example="123 Duong ABC, Quan 1, TP.HCM"),
+     *             @OA\Property(property="province_id", type="integer", example=202),
+     *             @OA\Property(property="district_id", type="integer", example=1442),
+     *             @OA\Property(property="ward_id", type="integer", example=20109),
+     *             @OA\Property(property="address_detail", type="string", example="Số 123, Đường ABC"),
      *             @OA\Property(property="payment_method", type="string", enum={"cod", "bank_transfer", "momo", "vnpay"}, example="cod"),
      *             @OA\Property(property="coupon_code", type="string", nullable=true, example="SUMMER2024"),
      *             @OA\Property(property="note", type="string", nullable=true, example="Giao gio hanh chinh")
@@ -49,7 +54,10 @@ class OrderController extends Controller
         $request->validate([
             'receiver_name' => 'required|string|max:100',
             'receiver_phone' => 'required|string|max:15',
-            'shipping_address' => 'required|string|max:500',
+            'province_id' => 'required|integer',
+            'district_id' => 'required|integer',
+            'ward_id' => 'required|integer',
+            'address_detail' => 'required|string|max:255',
             'payment_method' => 'required|in:cod,bank_transfer,momo,vnpay',
             'coupon_code' => 'nullable|string',
             'note' => 'nullable|string',
@@ -79,7 +87,7 @@ class OrderController extends Controller
             }
         }
 
-        $shippingFee = 30000; // Phí ship cố định (ví dụ)
+        $shippingFee = $this->shippingService->calculateShippingFee($request->province_id, $subtotal);
         $totalAmount = $subtotal - $discountAmount + $shippingFee;
 
         try {
@@ -105,7 +113,11 @@ class OrderController extends Controller
                 'order_code' => 'ORD-' . strtoupper(Str::random(10)),
                 'receiver_name' => $request->receiver_name,
                 'receiver_phone' => $request->receiver_phone,
-                'shipping_address' => $request->shipping_address,
+                'province_id' => $request->province_id,
+                'district_id' => $request->district_id,
+                'ward_id' => $request->ward_id,
+                'address_detail' => $request->address_detail,
+                'shipping_address' => $request->address_detail, // Có thể ghép chuỗi nếu muốn
                 'subtotal' => $subtotal,
                 'discount_amount' => $discountAmount,
                 'shipping_fee' => $shippingFee,
