@@ -49,6 +49,13 @@ class ProductController extends Controller
      *         @OA\Schema(type="integer", example=3)
      *     ),
      *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Tìm kiếm theo tên sản phẩm hoặc SKU",
+     *         required=false,
+     *         @OA\Schema(type="string", example="iphone")
+     *     ),
+     *     @OA\Parameter(
      *         name="min_price",
      *         in="query",
      *         description="Giá tối thiểu (lọc base_price >= giá trị này)",
@@ -203,7 +210,8 @@ class ProductController extends Controller
      *                 @OA\Property(property="description", type="string", example="Mô tả chi tiết sản phẩm"),
      *                 @OA\Property(property="base_price", type="number", example=5000000),
      *                 @OA\Property(property="sale_price", type="number", nullable=true),
-     *                 @OA\Property(property="category_id", type="integer", example=3),
+     *                 @OA\Property(property="sku", type="string", example="SKU12345"),
+     *                 @OA\Property(property="category_id", type="integer", example=3)  ,
      *                 @OA\Property(property="image", type="string", format="binary")
      *             )
      *         )
