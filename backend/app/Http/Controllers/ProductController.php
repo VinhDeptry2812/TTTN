@@ -378,6 +378,7 @@ class ProductController extends Controller
 
                     // Dọn dẹp RAM ngay lập tức cho từng ảnh để tránh OOMKilled trên Render
                     unset($img, $encoded);
+                    gc_collect_cycles();
                 }
             }
 
@@ -509,6 +510,7 @@ class ProductController extends Controller
 
                     // Dọn dẹp RAM ngay lập tức để tránh OOMKilled trên Render
                     unset($img, $encoded);
+                    gc_collect_cycles();
                 }
             }
 
