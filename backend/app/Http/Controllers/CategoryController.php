@@ -18,7 +18,6 @@ use Illuminate\Validation\Rule;
  *     @OA\Property(property="name", type="string", example="Nội thất phòng khách", description="Tên hiển thị của danh mục"),
  *     @OA\Property(property="slug", type="string", example="noi-that-phong-khach-65e8a1", description="Đường dẫn thân thiện (tự động tạo từ tên + unique id)"),
  *     @OA\Property(property="parent_id", type="integer", nullable=true, example=null, description="ID của danh mục cha (null nếu là danh mục gốc)"),
- *     @OA\Property(property="image", type="string", nullable=true, example="categories/image.jpg", description="Đường dẫn ảnh danh mục (lưu trong storage)"),
  *     @OA\Property(property="description", type="string", nullable=true, example="Mô tả danh mục", description="Mô tả chi tiết về danh mục"),
  *     @OA\Property(property="is_active", type="boolean", example=true, description="Trạng thái hiển thị (true: hiện, false: ẩn)"),
  *     @OA\Property(property="sort_order", type="integer", example=0, description="Thứ tự sắp xếp (số càng nhỏ càng hiện lên đầu)"),
@@ -143,13 +142,6 @@ class CategoryController extends Controller
      *                 ),
      *
      *                 @OA\Property(
-     *                     property="image",
-     *                     type="string",
-     *                     format="binary",
-     *                     description="Ảnh đại diện danh mục (jpg, png, webp...)"
-     *                 ),
-     *
-     *                 @OA\Property(
      *                     property="description",
      *                     type="string",
      *                     example="Danh mục các sản phẩm điện thoại",
@@ -242,11 +234,6 @@ class CategoryController extends Controller
         $validated = $request->validated();
 
         $validated['slug'] = Str::slug($validated['name']) . '-' . uniqid();
-
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('categories', 'public');
-            $validated['image'] = $path;
-        }
 
         $category = Category::create($validated);
 
@@ -360,13 +347,6 @@ class CategoryController extends Controller
      *                 ),
      *
      *                 @OA\Property(
-     *                     property="image",
-     *                     type="string",
-     *                     format="binary",
-     *                     description="Hình ảnh danh mục"
-     *                 ),
-     *
-     *                 @OA\Property(
      *                     property="description",
      *                     type="string",
      *                     description="Mô tả danh mục",
@@ -451,11 +431,6 @@ class CategoryController extends Controller
         $validated = $request->validated();
 
         $validated['slug'] = Str::slug($validated['name']) . '-' . substr($id, -4);
-
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('categories', 'public');
-            $validated['image'] = $path;
-        }
 
         $category->update($validated);
 
