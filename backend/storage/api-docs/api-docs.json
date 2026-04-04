@@ -2597,11 +2597,18 @@
                                         "format": "binary"
                                     },
                                     "gallery_images[]": {
-                                        "description": "Danh sách ảnh phụ mới (Sẽ ghi đè ảnh cũ)",
+                                        "description": "Danh sách ảnh phụ mới (Sẽ được thêm vào list ảnh)",
                                         "type": "array",
                                         "items": {
                                             "type": "string",
                                             "format": "binary"
+                                        }
+                                    },
+                                    "delete_gallery_image_ids[]": {
+                                        "description": "Danh sách ID của các ảnh phụ muốn xóa",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
                                         }
                                     }
                                 },
