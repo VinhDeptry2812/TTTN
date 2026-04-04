@@ -286,9 +286,9 @@ class CategoryController extends Controller
     public function show($id)
     {
         $category = Category::with([
-            'parent',
+            'parent:id,name,slug',
             'children' => function ($q) {
-                $q->withCount('products');
+                $q->withCount('products')->orderBy('sort_order');
             }
         ])->findOrFail($id);
 

@@ -200,7 +200,10 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with(['category', 'variants']);
+        $query = Product::select([
+            'id', 'category_id', 'name', 'slug', 'sku', 'base_price',
+            'sale_price', 'image_url', 'is_active', 'is_featured', 'created_at'
+        ])->with(['category:id,name,slug']);
 
         // Admin gửi all=true -> không lọc is_active, trả hết
         // FE public mặc định chỉ hiển thị sản phẩm đang bán
@@ -239,18 +242,12 @@ class ProductController extends Controller
             $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
         }
 
-        // Đếm tổng số sản phẩm thỏa mãn điều kiện lọc (Trước khi phân trang)
-        $countQuery = clone $query;
-        $total = $countQuery->count();
-
         // Admin: phân trang truyền thống (10 SP/trang), hiển thị cả SP ẩn
         if ($request->boolean('all')) {
             $products = $query->orderBy('id')->paginate(10);
             $products->appends($request->only(['category_id', 'min_price', 'max_price', 'sort_by', 'sort_order', 'all']));
-            
-            $responseData = $products->toArray();
-            $responseData['total'] = $total; // Thống nhất trường total
-            return response()->json($responseData);
+
+            return response()->json($products->toArray());
         }
 
         // Luôn thêm orderBy id để cursor pagination không bỏ sót dữ liệu
@@ -259,11 +256,7 @@ class ProductController extends Controller
         // Phân trang bằng cursor pagination (12 sản phẩm mỗi trang)
         $products = $query->cursorPaginate(12);
 
-        // Ép kiểu sang Array để bổ sung trường 'total' cho CursorPaginator
-        $responseData = $products->toArray();
-        $responseData['total'] = $total;
-
-        return response()->json($responseData);
+        return response()->json($products->toArray());
     }
 
     /**
@@ -430,14 +423,24 @@ class ProductController extends Controller
      */
     private function getAllChildCategoryIds($categoryId)
     {
-        $ids = [(int) $categoryId];
-        $children = Category::where('parent_id', $categoryId)->pluck('id')->toArray();
+        // 1 query duy nhất lấy tất cả categories (thay vì đệ quy N queries)
+        $allCategories = Category::pluck('parent_id', 'id');
 
-        foreach ($children as $childId) {
-            $ids = array_merge($ids, $this->getAllChildCategoryIds($childId));
+        $ids = [(int) $categoryId];
+        $queue = [(int) $categoryId];
+
+        // BFS: duyệt breadth-first tìm tất cả danh mục con
+        while (!empty($queue)) {
+            $currentId = array_shift($queue);
+            foreach ($allCategories as $id => $parentId) {
+                if ($parentId == $currentId && !in_array($id, $ids)) {
+                    $ids[] = $id;
+                    $queue[] = $id;
+                }
+            }
         }
 
-        return array_unique($ids);
+        return $ids;
     }
 
 

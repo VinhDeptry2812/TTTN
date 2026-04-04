@@ -54,8 +54,7 @@ class ProductVariantController extends Controller
      */
     public function index($productId)
     {
-        $product = Product::find($productId);
-        if (!$product) {
+        if (!Product::where('id', $productId)->exists()) {
             return response()->json(['success' => false, 'message' => 'Sản phẩm không tồn tại'], 404);
         }
 
@@ -108,9 +107,7 @@ class ProductVariantController extends Controller
      */
     public function store(StoreProductVariantRequest $request, $productId)
     {
-        \Log::info('Variant store hit', ['product_id' => $productId, 'data' => $request->all()]);
-        $product = Product::find($productId);
-        if (!$product) {
+        if (!Product::where('id', $productId)->exists()) {
             return response()->json(['success' => false, 'message' => 'Sản phẩm không tồn tại'], 404);
         }
 
@@ -122,7 +119,6 @@ class ProductVariantController extends Controller
         }
 
         $variant = ProductVariant::create($validated);
-        \Log::info('Variant created in DB', ['id' => $variant->id]);
 
         return response()->json([
             'success' => true,

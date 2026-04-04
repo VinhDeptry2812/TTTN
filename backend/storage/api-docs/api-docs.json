@@ -1318,11 +1318,6 @@
                                         "example": 1,
                                         "nullable": true
                                     },
-                                    "image": {
-                                        "description": "Ảnh đại diện danh mục (jpg, png, webp...)",
-                                        "type": "string",
-                                        "format": "binary"
-                                    },
                                     "description": {
                                         "description": "Mô tả ngắn của danh mục",
                                         "type": "string",
@@ -1514,11 +1509,6 @@
                                         "type": "integer",
                                         "example": 1,
                                         "nullable": true
-                                    },
-                                    "image": {
-                                        "description": "Hình ảnh danh mục",
-                                        "type": "string",
-                                        "format": "binary"
                                     },
                                     "description": {
                                         "description": "Mô tả danh mục",
@@ -1894,6 +1884,16 @@
                         "schema": {
                             "type": "integer",
                             "example": 3
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Tìm kiếm theo tên sản phẩm hoặc SKU",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "iphone"
                         }
                     },
                     {
@@ -3506,12 +3506,6 @@
                         "description": "ID của danh mục cha (null nếu là danh mục gốc)",
                         "type": "integer",
                         "example": null,
-                        "nullable": true
-                    },
-                    "image": {
-                        "description": "Đường dẫn ảnh danh mục (lưu trong storage)",
-                        "type": "string",
-                        "example": "categories/image.jpg",
                         "nullable": true
                     },
                     "description": {
