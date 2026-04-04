@@ -38,18 +38,17 @@ class GeminiVisionService
                          \"name\": \"Tên mẫu sản phẩm chung (ví dụ: Sofa Ý Luxury)\",
                          \"category\": \"Danh mục (Ghế, Bàn, Sofa...)\",
                          \"style\": \"Phong cách thiết kế (Hiện đại, Cổ điển...)\",
-                         \"description_raw\": \"Mô tả đầy đủ nhưng không quá dài về đặc điểm của mẫu này\"
+                         \"description_raw\": \"Mô tả đầy đủ nhưng không quá dài về đặc điểm của mẫu này\",
                          \"material\": \"Chất liệu cụ thể thấy trong ảnh\",
                          \"color\": \"Màu sắc cụ thể thấy trong ảnh\",
-                         \"weight_kg\": \"Trọng lượng của mẫu này(kg)\",
-                         \"dimensions\": \"Kích thước của mẫu này\",
-                         \"finish\": \"màu hoàn thiện bề mặt của mẫu này\",
-                         \"size\": \"kích thước của mẫu này (Ví dụ: 1m2x2m, 80cm,...)\",
-                         \"width_cm\": \"Chiều rộng của mẫu này(cm)\",
-                         \"depth_cm\": \"Chiều sâu/Chiều dài (cm)\",
-                         \"height_cm\": \"Chiều cao (cm)\",
-                         \"seat_height_cm\": \"Chiều cao mặt ghế (cm)\",
-                         \"price\": \"Giá của mẫu này(VND)\",
+                         \"weight_kg\": \"Trọng lượng ước tính (kg) - chỉ trả số\",
+                         \"finish\": \"Màu hoàn thiện bề mặt của mẫu này\",
+                         \"size\": \"Kích thước tổng quát (Ví dụ: 1m2x2m, 80cm,...)\",
+                         \"width_cm\": \"Chiều rộng ước tính (cm) - chỉ trả số\",
+                         \"depth_cm\": \"Chiều sâu/Chiều dài ước tính (cm) - chỉ trả số\",
+                         \"height_cm\": \"Chiều cao ước tính (cm) - chỉ trả số\",
+                         \"seat_height_cm\": \"Chiều cao mặt ghế nếu là ghế/sofa (cm) - chỉ trả số, không có thì trả null\",
+                         \"price\": \"Giá ước tính (VND) - chỉ trả số\"
                      }
                    - Nếu KHÔNG phải đồ nội thất:
                      {

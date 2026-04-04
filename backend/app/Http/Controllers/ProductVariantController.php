@@ -150,7 +150,15 @@ class ProductVariantController extends Controller
      *             )
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Cập nhật thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Cập nhật biến thể thành công!"),
+     *             @OA\Property(property="data", ref="#/components/schemas/ProductVariant")
+     *         )
+     *     ),
      *     @OA\Response(response=404, description="Biến thể không tồn tại"),
      *     @OA\Response(response=422, description="Dữ liệu không hợp lệ")
      * )
@@ -188,7 +196,14 @@ class ProductVariantController extends Controller
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(name="productId", in="path", required=true, @OA\Schema(type="integer")),
      *     @OA\Parameter(name="variantId", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Xóa thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Xóa thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Đã xóa biến thể thành công!")
+     *         )
+     *     ),
      *     @OA\Response(response=404, description="Biến thể không tồn tại")
      * )
      */

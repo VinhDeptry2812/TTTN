@@ -27,7 +27,11 @@ class WishlistController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Lấy danh sách yêu thích thành công!"),
-     *             @OA\Property(property="data", type="object")
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 description="Đối tượng phân trang"
+     *             )
      *         )
      *     ),
      *     @OA\Response(response=401, description="Chưa đăng nhập")
@@ -86,7 +90,7 @@ class WishlistController extends Controller
      *     ),
      *
      *     @OA\Response(
-     *         response=201,
+     *         response=200,
      *         description="Thêm vào wishlist thành công",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),

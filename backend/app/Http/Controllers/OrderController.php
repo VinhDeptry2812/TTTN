@@ -40,8 +40,23 @@ class OrderController extends Controller
      *             @OA\Property(property="note", type="string", nullable=true, example="Giao gio hanh chinh")
      *         )
      *     ),
-     *     @OA\Response(response=201, description="Đặt hàng thành công"),
-     *     @OA\Response(response=422, description="Lỗi validation hoặc mã giảm giá không hợp lệ")
+     *     @OA\Response(
+     *         response=201, 
+     *         description="Đặt hàng thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Đặt hàng thành công!"),
+     *             @OA\Property(property="order", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422, 
+     *         description="Lỗi validation hoặc mã giảm giá không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Giỏ hàng của bạn đang trống.")
+     *         )
+     *     )
      * )
      */
     public function checkout(Request $request)

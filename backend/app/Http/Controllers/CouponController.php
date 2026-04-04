@@ -82,7 +82,15 @@ class CouponController extends Controller
     }
 
     /**
-     * Xem chi tiết mã giảm giá (Admin).
+     * @OA\Get(
+     *     path="/admin/coupons/{id}",
+     *     summary="Xem chi tiết mã giảm giá (Admin)",
+     *     tags={"Admin Coupons"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Thành công", @OA\JsonContent(ref="#/components/schemas/Coupon")),
+     *     @OA\Response(response=404, description="Không tìm thấy")
+     * )
      */
     public function show(Coupon $coupon)
     {
@@ -90,7 +98,19 @@ class CouponController extends Controller
     }
 
     /**
-     * Cập nhật mã giảm giá (Admin).
+     * @OA\Put(
+     *     path="/admin/coupons/{id}",
+     *     summary="Cập nhật mã giảm giá (Admin)",
+     *     tags={"Admin Coupons"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/Coupon")
+     *     ),
+     *     @OA\Response(response=200, description="Cập nhật thành công", @OA\JsonContent(ref="#/components/schemas/Coupon")),
+     *     @OA\Response(response=404, description="Không tìm thấy")
+     * )
      */
     public function update(Request $request, Coupon $coupon)
     {
@@ -111,7 +131,15 @@ class CouponController extends Controller
     }
 
     /**
-     * Xóa mã giảm giá (Admin).
+     * @OA\Delete(
+     *     path="/admin/coupons/{id}",
+     *     summary="Xóa mã giảm giá (Admin)",
+     *     tags={"Admin Coupons"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=204, description="Xóa thành công"),
+     *     @OA\Response(response=404, description="Không tìm thấy")
+     * )
      */
     public function destroy(Coupon $coupon)
     {
@@ -133,8 +161,25 @@ class CouponController extends Controller
      *             @OA\Property(property="order_amount", type="number", example=200000)
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Thành công"),
-     *     @OA\Response(response=422, description="Mã không hợp lệ hoặc không đủ điều kiện")
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="coupon_code", type="string", example="SUMMER2024"),
+     *             @OA\Property(property="discount_amount", type="number", example=50000),
+     *             @OA\Property(property="final_amount", type="number", example=150000),
+     *             @OA\Property(property="message", type="string", example="Áp dụng mã giảm giá thành công.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422, 
+     *         description="Mã không hợp lệ hoặc không đủ điều kiện",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Mã giảm giá đã hết hạn.")
+     *         )
+     *     )
      * )
      */
     public function apply(Request $request)

@@ -54,8 +54,24 @@ class AuthController extends Controller
      *             @OA\Property(property="password_confirmation", type="string", example="123456")
      *         )
      *     ),
-     *     @OA\Response(response=201, description="Đăng ký thành công"),
-     *     @OA\Response(response=422, description="Validation lỗi")
+     *     @OA\Response(
+     *         response=201, 
+     *         description="Đăng ký thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Đăng ký thành công"),
+     *             @OA\Property(property="token", type="string", example="eyJhbGciOiJIUz..."),
+     *             @OA\Property(property="user", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422, 
+     *         description="Lỗi validation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Dữ liệu gửi lên không hợp lệ."),
+     *             @OA\Property(property="errors", type="object", example={"email": {"Email đã được sử dụng."}})
+     *         )
+     *     )
      * )
      */
     // SIGNUP

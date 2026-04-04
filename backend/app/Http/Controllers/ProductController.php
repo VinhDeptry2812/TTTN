@@ -313,7 +313,15 @@ class ProductController extends Controller
      *             )
      *         )
      *     ),
-     *     @OA\Response(response=201, description="Tạo thành công"),
+     *     @OA\Response(
+     *         response=201, 
+     *         description="Tạo thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Sản phẩm đã được tạo thành công!"),
+     *             @OA\Property(property="product", ref="#/components/schemas/Product")
+     *         )
+     *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập"),
      *     @OA\Response(response=422, description="Lỗi validation")
      * )
@@ -360,7 +368,15 @@ class ProductController extends Controller
      *             )
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Cập nhật thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Sản phẩm đã được cập nhật thành công!"),
+     *             @OA\Property(property="product", ref="#/components/schemas/Product")
+     *         )
+     *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập")
      * )
      */
@@ -397,7 +413,14 @@ class ProductController extends Controller
      *     tags={"Products"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Xóa thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Xóa thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Sản phẩm đã được xóa thành công!")
+     *         )
+     *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập"),
      *     @OA\Response(response=404, description="Sản phẩm không tồn tại")
      * )
@@ -524,11 +547,21 @@ class ProductController extends Controller
      *         response=200,
      *         description="Kết quả nhận diện thành công",
      *         @OA\JsonContent(
-     *             @OA\Property(property="product_name", type="string"),
-     *             @OA\Property(property="category", type="string"),
-     *             @OA\Property(property="material", type="string"),
-     *             @OA\Property(property="color", type="string"),
-     *             @OA\Property(property="style", type="string")
+     *             @OA\Property(property="is_furniture", type="boolean", example=true),
+     *             @OA\Property(property="name", type="string", description="Tên mẫu sản phẩm", example="Sofa Ý Luxury"),
+     *             @OA\Property(property="category", type="string", description="Danh mục", example="Sofa"),
+     *             @OA\Property(property="style", type="string", description="Phong cách", example="Hiện đại"),
+     *             @OA\Property(property="description_raw", type="string", description="Mô tả AI tự tạo"),
+     *             @OA\Property(property="material", type="string", description="Chất liệu", example="Da bò thật"),
+     *             @OA\Property(property="color", type="string", description="Màu sắc", example="Nâu"),
+     *             @OA\Property(property="weight_kg", type="number", description="Trọng lượng (kg)", example=45.5),
+     *             @OA\Property(property="finish", type="string", description="Màu hoàn thiện", example="Matte"),
+     *             @OA\Property(property="size", type="string", description="Kích thước tổng quát", example="Lớn"),
+     *             @OA\Property(property="width_cm", type="number", description="Chiều rộng (cm)", example=200),
+     *             @OA\Property(property="depth_cm", type="number", description="Chiều sâu (cm)", example=90),
+     *             @OA\Property(property="height_cm", type="number", description="Chiều cao (cm)", example=85),
+     *             @OA\Property(property="seat_height_cm", type="number", description="Chiều cao mặt ghế (cm)", example=45),
+     *             @OA\Property(property="price", type="number", description="Giá dự kiến (VND)", example=15000000)
      *         )
      *     ),
      *     @OA\Response(response=400, description="Dữ liệu không hợp lệ"),
