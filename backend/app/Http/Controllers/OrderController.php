@@ -25,7 +25,7 @@ class OrderController extends Controller
     /**
      * @OA\Post(
      *     path="/checkout",
-     *     summary="Đơn hàng cần Checkout",
+     *     summary="Thanh toán đơn hàng (Checkout)",
      *     tags={"Orders"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
