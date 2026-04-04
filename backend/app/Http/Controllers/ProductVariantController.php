@@ -7,6 +7,8 @@ use App\Models\ProductVariant;
 use App\Http\Requests\StoreProductVariantRequest;
 use App\Http\Requests\UpdateProductVariantRequest;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 
 /**
@@ -54,8 +56,7 @@ class ProductVariantController extends Controller
      */
     public function index($productId)
     {
-        $product = Product::find($productId);
-        if (!$product) {
+        if (!Product::where('id', $productId)->exists()) {
             return response()->json(['success' => false, 'message' => 'Sản phẩm không tồn tại'], 404);
         }
 
@@ -108,9 +109,7 @@ class ProductVariantController extends Controller
      */
     public function store(StoreProductVariantRequest $request, $productId)
     {
-        \Log::info('Variant store hit', ['product_id' => $productId, 'data' => $request->all()]);
-        $product = Product::find($productId);
-        if (!$product) {
+        if (!Product::where('id', $productId)->exists()) {
             return response()->json(['success' => false, 'message' => 'Sản phẩm không tồn tại'], 404);
         }
 
@@ -118,11 +117,20 @@ class ProductVariantController extends Controller
         $validated['product_id'] = $productId;
 
         if ($request->hasFile('image')) {
-            $validated['image_url'] = $request->file('image')->store('variants', 'public');
+            $manager = new ImageManager(new Driver());
+            $imageFile = $request->file('image');
+            $fileName = 'variants/' . uniqid() . '_' . time() . '.webp';
+            
+            $image = $manager->read($imageFile);
+            if ($image->width() > 1000) {
+                $image->scale(width: 1000);
+            }
+            $encoded = $image->toWebp(80);
+            Storage::disk('public')->put($fileName, (string) $encoded);
+            $validated['image_url'] = $fileName;
         }
 
         $variant = ProductVariant::create($validated);
-        \Log::info('Variant created in DB', ['id' => $variant->id]);
 
         return response()->json([
             'success' => true,
@@ -154,7 +162,15 @@ class ProductVariantController extends Controller
      *             )
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Cập nhật thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Cập nhật biến thể thành công!"),
+     *             @OA\Property(property="data", ref="#/components/schemas/ProductVariant")
+     *         )
+     *     ),
      *     @OA\Response(response=404, description="Biến thể không tồn tại"),
      *     @OA\Response(response=422, description="Dữ liệu không hợp lệ")
      * )
@@ -169,10 +185,20 @@ class ProductVariantController extends Controller
         $validated = $request->validated();
 
         if ($request->hasFile('image')) {
-            if ($variant->image_url) {
-                Storage::disk('public')->delete($variant->image_url);
+            if ($variant->getRawOriginal('image_url')) {
+                Storage::disk('public')->delete($variant->getRawOriginal('image_url'));
             }
-            $validated['image_url'] = $request->file('image')->store('variants', 'public');
+            $manager = new ImageManager(new Driver());
+            $imageFile = $request->file('image');
+            $fileName = 'variants/' . uniqid() . '_' . time() . '.webp';
+            
+            $image = $manager->read($imageFile);
+            if ($image->width() > 1000) {
+                $image->scale(width: 1000);
+            }
+            $encoded = $image->toWebp(80);
+            Storage::disk('public')->put($fileName, (string) $encoded);
+            $validated['image_url'] = $fileName;
         }
 
         $variant->update($validated);
@@ -192,7 +218,14 @@ class ProductVariantController extends Controller
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(name="productId", in="path", required=true, @OA\Schema(type="integer")),
      *     @OA\Parameter(name="variantId", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Xóa thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Xóa thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Đã xóa biến thể thành công!")
+     *         )
+     *     ),
      *     @OA\Response(response=404, description="Biến thể không tồn tại")
      * )
      */
@@ -204,8 +237,8 @@ class ProductVariantController extends Controller
         }
 
         // Xóa ảnh của biến thể nếu có
-        if ($variant->image_url) {
-            Storage::disk('public')->delete($variant->image_url);
+        if ($variant->getRawOriginal('image_url')) {
+            Storage::disk('public')->delete($variant->getRawOriginal('image_url'));
         }
 
         $variant->delete();

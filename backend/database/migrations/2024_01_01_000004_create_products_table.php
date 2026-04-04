@@ -14,7 +14,6 @@ return new class extends Migration {
             $table->string('slug', 191)->unique();
             $table->string('sku', 100)->unique();
             $table->longText('description')->nullable();
-            $table->string('material', 100)->nullable();
             $table->string('brand', 100)->nullable();
             $table->decimal('weight', 8, 2)->nullable()->comment('Khối lượng (kg)');
             $table->decimal('base_price', 15, 2)->comment('Giá gốc');

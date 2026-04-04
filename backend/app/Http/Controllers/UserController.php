@@ -22,7 +22,18 @@ class UserController extends Controller
      *         required=false,
      *         @OA\Schema(type="string")
      *     ),
-     *     @OA\Response(response=200, description="Thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/User")),
+     *                 @OA\Property(property="total", type="integer", example=50)
+     *             )
+     *         )
+     *     ),
      *     @OA\Response(response=401, description="Chưa xác thực"),
      *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)")
      * )
@@ -59,7 +70,14 @@ class UserController extends Controller
      *         required=true,
      *         @OA\Schema(type="integer")
      *     ),
-     *     @OA\Response(response=200, description="Thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="user", ref="#/components/schemas/User")
+     *         )
+     *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)"),
      *     @OA\Response(response=404, description="Không tìm thấy người dùng")
      * )
@@ -100,7 +118,15 @@ class UserController extends Controller
      *             @OA\Property(property="is_active", type="boolean", example=true)
      *         )
      *     ),
-     *     @OA\Response(response=201, description="Thêm thành công"),
+     *     @OA\Response(
+     *         response=201, 
+     *         description="Thêm thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Thêm người dùng thành công"),
+     *             @OA\Property(property="user", ref="#/components/schemas/User")
+     *         )
+     *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)"),
      *     @OA\Response(response=422, description="Lỗi validation")
      * )
@@ -163,7 +189,15 @@ class UserController extends Controller
      *             @OA\Property(property="is_active", type="boolean", example=true)
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Cập nhật thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Cập nhật người dùng thành công"),
+     *             @OA\Property(property="user", ref="#/components/schemas/User")
+     *         )
+     *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)"),
      *     @OA\Response(response=422, description="Lỗi validation")
      * )
@@ -200,7 +234,14 @@ class UserController extends Controller
      *         required=true,
      *         @OA\Schema(type="integer")
      *     ),
-     *     @OA\Response(response=200, description="Xóa thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Xóa thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Xóa người dùng thành công")
+     *         )
+     *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)"),
      *     @OA\Response(response=404, description="Không tìm thấy người dùng")
      * )

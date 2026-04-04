@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GeminiRequestGenerateDesc;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -10,6 +11,11 @@ use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Support\Str;
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
+use App\Services\GeminiService;
+use App\Services\GeminiVisionService;
+use App\Http\Requests\GeminiVisionRequest;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 /**
  * @OA\Schema(
@@ -38,16 +44,29 @@ class ProductController extends Controller
     /**
      * @OA\Get(
      *     path="/products",
-     *     summary="Lấy danh sách sản phẩm (Hỗ trợ Lọc, Sắp xếp & Infinite Scrolling)",
-     *     description="API trả về danh sách sản phẩm với cursor-based pagination. Hỗ trợ lọc theo danh mục, khoảng giá và sắp xếp theo nhiều tiêu chí.",
+     *     summary="Lấy danh sách sản phẩm",
+     *     description="API trả về danh sách sản phẩm có hỗ trợ tìm kiếm, lọc, sắp xếp và cursor-based pagination (infinite scrolling). 
+     *     Mặc định chỉ trả về sản phẩm đang hoạt động (is_active = true). 
+     *     Nếu truyền all=true thì trả về tất cả sản phẩm (dành cho admin).",
+     *     operationId="getProducts",
      *     tags={"Products"},
+     *
      *     @OA\Parameter(
      *         name="category_id",
      *         in="query",
-     *         description="Lọc theo ID danh mục sản phẩm",
+     *         description="ID danh mục sản phẩm. Hệ thống sẽ tự động lấy cả danh mục con.",
      *         required=false,
      *         @OA\Schema(type="integer", example=3)
      *     ),
+     *
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Tìm kiếm theo tên sản phẩm hoặc SKU",
+     *         required=false,
+     *         @OA\Schema(type="string", example="iphone")
+     *     ),
+     *
      *     @OA\Parameter(
      *         name="search",
      *         in="query",
@@ -58,56 +77,135 @@ class ProductController extends Controller
      *     @OA\Parameter(
      *         name="min_price",
      *         in="query",
-     *         description="Giá tối thiểu (lọc base_price >= giá trị này)",
+     *         description="Lọc sản phẩm có giá >= giá trị này",
      *         required=false,
-     *         @OA\Schema(type="number", example=1000000)
+     *         @OA\Schema(type="number", format="float", example=1000000)
      *     ),
+     *
      *     @OA\Parameter(
      *         name="max_price",
      *         in="query",
-     *         description="Giá tối đa (lọc base_price <= giá trị này)",
+     *         description="Lọc sản phẩm có giá <= giá trị này",
      *         required=false,
-     *         @OA\Schema(type="number", example=5000000)
+     *         @OA\Schema(type="number", format="float", example=5000000)
      *     ),
+     *
      *     @OA\Parameter(
      *         name="sort_by",
      *         in="query",
-     *         description="Trường sắp xếp. Chỉ chấp nhận: base_price, name, created_at (mặc định: created_at)",
+     *         description="Trường dùng để sắp xếp",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"base_price", "name", "created_at"}, default="created_at")
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"base_price","name","created_at"},
+     *             default="created_at"
+     *         )
      *     ),
+     *
      *     @OA\Parameter(
      *         name="sort_order",
      *         in="query",
-     *         description="Thứ tự sắp xếp: asc (tăng dần) hoặc desc (giảm dần, mặc định)",
+     *         description="Thứ tự sắp xếp",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"asc", "desc"}, default="desc")
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"asc","desc"},
+     *             default="desc"
+     *         )
      *     ),
+     *
      *     @OA\Parameter(
      *         name="cursor",
      *         in="query",
-     *         description="Mã cursor để lấy trang tiếp theo (lấy từ next_page_url của response trước)",
+     *         description="Cursor dùng cho cursor pagination để lấy trang tiếp theo",
      *         required=false,
      *         @OA\Schema(type="string")
      *     ),
+     *
+     *     @OA\Parameter(
+     *         name="all",
+     *         in="query",
+     *         description="Nếu true thì trả về tất cả sản phẩm (bao gồm cả sản phẩm ẩn). Dành cho admin.",
+     *         required=false,
+     *         @OA\Schema(type="boolean", example=false)
+     *     ),
+     *
      *     @OA\Response(
      *         response=200,
-     *         description="Trả về danh sách sản phẩm thành công",
+     *         description="Danh sách sản phẩm",
      *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Product")),
-     *             @OA\Property(property="path", type="string", description="URL hiện tại"),
-     *             @OA\Property(property="per_page", type="integer", description="Số lượng mỗi trang"),
-     *             @OA\Property(property="next_cursor", type="string", nullable=true, description="Cursor cho trang tiếp theo"),
-     *             @OA\Property(property="next_page_url", type="string", nullable=true, description="Link trang tiếp theo"),
-     *             @OA\Property(property="prev_cursor", type="string", nullable=true, description="Cursor cho trang trước"),
-     *             @OA\Property(property="prev_page_url", type="string", nullable=true, description="Link trang trước")
+     *
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 description="Danh sách sản phẩm",
+     *                 @OA\Items(ref="#/components/schemas/Product")
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="path",
+     *                 type="string",
+     *                 example="http://localhost/api/products"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="per_page",
+     *                 type="integer",
+     *                 example=12,
+     *                 description="Số lượng sản phẩm mỗi trang"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="next_cursor",
+     *                 type="string",
+     *                 nullable=true,
+     *                 example="eyJpZCI6MTJ9",
+     *                 description="Cursor cho trang tiếp theo"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="next_page_url",
+     *                 type="string",
+     *                 nullable=true,
+     *                 example="http://localhost/api/products?cursor=eyJpZCI6MTJ9",
+     *                 description="URL trang tiếp theo"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="prev_cursor",
+     *                 type="string",
+     *                 nullable=true,
+     *                 example=null,
+     *                 description="Cursor trang trước"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="prev_page_url",
+     *                 type="string",
+     *                 nullable=true,
+     *                 example=null,
+     *                 description="URL trang trước"
+     *             )
      *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=400,
+     *         description="Tham số không hợp lệ"
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi server"
      *     )
      * )
      */
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $query = Product::select([
+            'id', 'category_id', 'name', 'slug', 'sku', 'base_price',
+            'sale_price', 'image_url', 'is_active', 'is_featured', 'created_at'
+        ])->with(['category:id,name,slug']);
 
         // Admin gửi all=true -> không lọc is_active, trả hết
         // FE public mặc định chỉ hiển thị sản phẩm đang bán
@@ -150,7 +248,8 @@ class ProductController extends Controller
         if ($request->boolean('all')) {
             $products = $query->orderBy('id')->paginate(10);
             $products->appends($request->only(['category_id', 'min_price', 'max_price', 'sort_by', 'sort_order', 'all']));
-            return response()->json($products);
+
+            return response()->json($products->toArray());
         }
 
         // Luôn thêm orderBy id để cursor pagination không bỏ sót dữ liệu
@@ -159,7 +258,7 @@ class ProductController extends Controller
         // Phân trang bằng cursor pagination (12 sản phẩm mỗi trang)
         $products = $query->cursorPaginate(12);
 
-        return response()->json($products);
+        return response()->json($products->toArray());
     }
 
     /**
@@ -181,7 +280,7 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $product = Product::with(['category', 'variants'])->find($id);
+        $product = Product::with(['category', 'variants', 'images'])->find($id);
         if (!$product) {
             return response()->json([
                 'success' => false,
@@ -212,11 +311,20 @@ class ProductController extends Controller
      *                 @OA\Property(property="sale_price", type="number", nullable=true),
      *                 @OA\Property(property="sku", type="string", example="SKU12345"),
      *                 @OA\Property(property="category_id", type="integer", example=3)  ,
-     *                 @OA\Property(property="image", type="string", format="binary")
+     *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện (Sẽ được nén webp)"),
+     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ (Tối đa 5)")
      *             )
      *         )
      *     ),
-     *     @OA\Response(response=201, description="Tạo thành công"),
+     *     @OA\Response(
+     *         response=201, 
+     *         description="Tạo thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Sản phẩm đã được tạo thành công!"),
+     *             @OA\Property(property="product", ref="#/components/schemas/Product")
+     *         )
+     *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập"),
      *     @OA\Response(response=422, description="Lỗi validation")
      * )
@@ -227,12 +335,47 @@ class ProductController extends Controller
 
         $validatedData['slug'] = Str::slug($request->name) . '-' . time();
 
+        $manager = new ImageManager(new Driver());
+
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
-            $validatedData['image_url'] = $imagePath;
+            $imageFile = $request->file('image');
+            $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
+            
+            $image = $manager->read($imageFile);
+            if ($image->width() > 1000) {
+                $image->scale(width: 1000);
+            }
+            $encoded = $image->toWebp(80);
+            
+            Storage::disk('public')->put($fileName, (string) $encoded);
+            
+            $validatedData['image_url'] = $fileName;
         }
 
         $product = Product::create($validatedData);
+
+        // Upload gallery images
+        if ($request->hasFile('gallery_images')) {
+            foreach ($request->file('gallery_images') as $index => $galleryImage) {
+                $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
+                
+                $img = $manager->read($galleryImage);
+                if ($img->width() > 1000) {
+                    $img->scale(width: 1000);
+                }
+                $encoded = $img->toWebp(80);
+                
+                Storage::disk('public')->put($fileName, (string) $encoded);
+                
+                $product->images()->create([
+                    'image_url' => $fileName,
+                    'is_primary' => false,
+                    'sort_order' => $index
+                ]);
+            }
+        }
+
+        $product->load('images');
 
         return response()->json([
             'success' => true,
@@ -259,11 +402,20 @@ class ProductController extends Controller
      *                 @OA\Property(property="description", type="string"),
      *                 @OA\Property(property="base_price", type="number"),
      *                 @OA\Property(property="category_id", type="integer"),
-     *                 @OA\Property(property="image", type="string", format="binary")
+     *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện mới"),
+     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ mới (Sẽ ghi đè ảnh cũ)")
      *             )
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Cập nhật thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Sản phẩm đã được cập nhật thành công!"),
+     *             @OA\Property(property="product", ref="#/components/schemas/Product")
+     *         )
+     *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập")
      * )
      */
@@ -275,16 +427,58 @@ class ProductController extends Controller
         }
 
         $validatedData = $request->validated();
+        $manager = new ImageManager(new Driver());
 
         if ($request->hasFile('image')) {
-            if ($product->image_url) {
-                Storage::disk('public')->delete($product->image_url);
+            // Delete old primary image correctly using raw path
+            if ($product->getRawOriginal('image_url')) {
+                Storage::disk('public')->delete($product->getRawOriginal('image_url'));
             }
-            $imagePath = $request->file('image')->store('products', 'public');
-            $validatedData['image_url'] = $imagePath;
+            
+            $imageFile = $request->file('image');
+            $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
+            
+            $image = $manager->read($imageFile);
+            if ($image->width() > 1000) {
+                $image->scale(width: 1000);
+            }
+            $encoded = $image->toWebp(80);
+            
+            Storage::disk('public')->put($fileName, (string) $encoded);
+            $validatedData['image_url'] = $fileName;
         }
 
         $product->update($validatedData);
+
+        if ($request->hasFile('gallery_images')) {
+            // Replace all existing gallery images
+            foreach ($product->images as $oldImage) {
+                if ($oldImage->getRawOriginal('image_url')) {
+                    Storage::disk('public')->delete($oldImage->getRawOriginal('image_url'));
+                }
+                $oldImage->delete(); // Or permanent delete since the record logic uses soft delete maybe
+            }
+
+            foreach ($request->file('gallery_images') as $index => $galleryImage) {
+                $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
+                
+                $img = $manager->read($galleryImage);
+                if ($img->width() > 1000) {
+                    $img->scale(width: 1000);
+                }
+                $encoded = $img->toWebp(80);
+                
+                Storage::disk('public')->put($fileName, (string) $encoded);
+                
+                $product->images()->create([
+                    'image_url' => $fileName,
+                    'is_primary' => false,
+                    'sort_order' => $index
+                ]);
+            }
+        }
+
+        $product->load('images');
 
         return response()->json([
             'success' => true,
@@ -300,7 +494,14 @@ class ProductController extends Controller
      *     tags={"Products"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Xóa thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Xóa thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Sản phẩm đã được xóa thành công!")
+     *         )
+     *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập"),
      *     @OA\Response(response=404, description="Sản phẩm không tồn tại")
      * )
@@ -326,13 +527,147 @@ class ProductController extends Controller
      */
     private function getAllChildCategoryIds($categoryId)
     {
-        $ids = [(int) $categoryId];
-        $children = Category::where('parent_id', $categoryId)->pluck('id')->toArray();
+        // 1 query duy nhất lấy tất cả categories (thay vì đệ quy N queries)
+        $allCategories = Category::pluck('parent_id', 'id');
 
-        foreach ($children as $childId) {
-            $ids = array_merge($ids, $this->getAllChildCategoryIds($childId));
+        $ids = [(int) $categoryId];
+        $queue = [(int) $categoryId];
+
+        // BFS: duyệt breadth-first tìm tất cả danh mục con
+        while (!empty($queue)) {
+            $currentId = array_shift($queue);
+            foreach ($allCategories as $id => $parentId) {
+                if ($parentId == $currentId && !in_array($id, $ids)) {
+                    $ids[] = $id;
+                    $queue[] = $id;
+                }
+            }
         }
 
-        return array_unique($ids);
+        return $ids;
+    }
+
+
+
+    /**
+     * @OA\Post(
+     *     path="/products/generate-ai-description",
+     *     summary="Tạo mô tả sản phẩm bằng AI (Yêu cầu: superadmin, admin)",
+     *     description="Sử dụng OpenAI để tạo một đoạn mô tả sản phẩm hấp dẫn dựa trên tên, danh mục và chất liệu.",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name"},
+     *             @OA\Property(property="name", type="string", example="Ghế Sofa Da Ý Luxury"),
+     *             @OA\Property(property="category", type="string", example="Sofa"),
+     *             @OA\Property(property="material", type="string", example="Da bò thật, khung gỗ sồi")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tạo mô tả thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="description", type="string", example="Trải nghiệm sự sang trọng tột bậc với Ghế Sofa Da Ý Luxury...")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Lỗi validation dữ liệu",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Lỗi validation dữ liệu"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi kết nối API AI",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Không thể tạo mô tả lúc này")
+     *         )
+     *     )
+     * )
+     */
+    public function generateAIDescription(GeminiRequestGenerateDesc $request, GeminiService $gemini)
+    {
+        $validatedData = $request->validated();
+        $description = $gemini->generateDescription(
+            $validatedData['name'],
+            $validatedData['category'],
+            $validatedData['material']
+        );
+        if (!$description) {
+            return response()->json(['message' => 'Không thể tạo mô tả lúc này'], 500);
+        }
+        return response()->json(['description' => $description]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/products/detect-ai",
+     *     summary="Nhận diện sản phẩm từ hình ảnh sử dụng Gemini Vision",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="image",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="File hình ảnh sản phẩm (jpg, png...)"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Kết quả nhận diện thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="is_furniture", type="boolean", example=true),
+     *             @OA\Property(property="name", type="string", description="Tên mẫu sản phẩm", example="Sofa Ý Luxury"),
+     *             @OA\Property(property="category", type="string", description="Danh mục", example="Sofa"),
+     *             @OA\Property(property="style", type="string", description="Phong cách", example="Hiện đại"),
+     *             @OA\Property(property="description_raw", type="string", description="Mô tả AI tự tạo"),
+     *             @OA\Property(property="material", type="string", description="Chất liệu", example="Da bò thật"),
+     *             @OA\Property(property="color", type="string", description="Màu sắc", example="Nâu"),
+     *             @OA\Property(property="weight_kg", type="number", description="Trọng lượng (kg)", example=45.5),
+     *             @OA\Property(property="finish", type="string", description="Màu hoàn thiện", example="Matte"),
+     *             @OA\Property(property="size", type="string", description="Kích thước tổng quát", example="Lớn"),
+     *             @OA\Property(property="width_cm", type="number", description="Chiều rộng (cm)", example=200),
+     *             @OA\Property(property="depth_cm", type="number", description="Chiều sâu (cm)", example=90),
+     *             @OA\Property(property="height_cm", type="number", description="Chiều cao (cm)", example=85),
+     *             @OA\Property(property="seat_height_cm", type="number", description="Chiều cao mặt ghế (cm)", example=45),
+     *             @OA\Property(property="price", type="number", description="Giá dự kiến (VND)", example=15000000)
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Dữ liệu không hợp lệ"),
+     *     @OA\Response(response=500, description="Lỗi hệ thống hoặc API")
+     * )
+     */
+    public function detectAI(GeminiVisionRequest $request, GeminiVisionService $geminiVision)
+    {
+        $image = $request->file('image');
+        $path = $image->getRealPath();
+        $mimeType = $image->getMimeType();
+
+        $result = $geminiVision->identifyProductFromImage($path, $mimeType);
+
+        if (!$result) {
+            return response()->json(['message' => 'Không thể nhận diện hình ảnh lúc này'], 500);
+        }
+
+        // Kiểm tra nếu không phải đồ nội thất
+        if (isset($result['is_furniture']) && $result['is_furniture'] === false) {
+            return response()->json([
+                'message' => $result['error'] ?? 'Hình ảnh không phải là đồ nội thất.'
+            ], 422);
+        }
+
+        return response()->json($result);
     }
 }

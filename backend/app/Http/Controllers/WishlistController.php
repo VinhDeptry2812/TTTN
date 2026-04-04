@@ -27,7 +27,11 @@ class WishlistController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Lấy danh sách yêu thích thành công!"),
-     *             @OA\Property(property="data", type="object")
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 description="Đối tượng phân trang"
+     *             )
      *         )
      *     ),
      *     @OA\Response(response=401, description="Chưa đăng nhập")
@@ -39,24 +43,24 @@ class WishlistController extends Controller
         $perPage = $request->query('per_page', 10);
         $order = $request->query('order', 'desc');
 
-        $query = Wishlist::where('user_id', $user->id)
-            ->join('products', 'wishlists.product_id', '=', 'products.id')
-            ->select('wishlists.*');
+        $query = Wishlist::where('user_id', $user->id);
 
-        // Tìm kiếm theo tên sản phẩm
-        $query->when($request->search, function ($q, $search) {
-            return $q->where('products.name', 'LIKE', "%{$search}%");
-        });
-
-        // Lọc theo danh mục
-        $query->when($request->category_id, function ($q, $cid) {
-            return $q->where('products.category_id', $cid);
-        });
+        // Tìm kiếm theo tên sản phẩm hoặc lọc theo danh mục (dùng whereHas thay vì JOIN)
+        if ($request->search || $request->category_id) {
+            $query->whereHas('product', function ($q) use ($request) {
+                if ($request->search) {
+                    $q->where('name', 'LIKE', "%{$request->search}%");
+                }
+                if ($request->category_id) {
+                    $q->where('category_id', $request->category_id);
+                }
+            });
+        }
 
         // Mặc định sắp xếp theo ngày thêm vào wishlist
-        $query->orderBy('wishlists.created_at', $order);
+        $query->orderBy('created_at', $order);
 
-        $wishlists = $query->with('product')->paginate($perPage);
+        $wishlists = $query->with('product:id,name,slug,base_price,sale_price,image_url,category_id')->paginate($perPage);
 
         return response()->json([
             'success' => true,
@@ -86,7 +90,7 @@ class WishlistController extends Controller
      *     ),
      *
      *     @OA\Response(
-     *         response=201,
+     *         response=200,
      *         description="Thêm vào wishlist thành công",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),

@@ -10,7 +10,6 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\FaceBookAuthController;
 use App\Http\Controllers\WishlistController;
 
 Route::get('/products', [ProductController::class, 'index']);
@@ -85,6 +84,10 @@ Route::middleware('auth:admin-api')->group(function () {
 
     // --- Nhóm quyền: Superadmin & Admin ---
     Route::middleware('role.admin:superadmin,admin')->group(function () {
+        // Generate AI Description
+        Route::post('/products/generate-ai-description', [ProductController::class, 'generateAIDescription']);
+        Route::post('/products/detect-ai', [ProductController::class, 'detectAI']);
+
         // Quản lý Sản phẩm
         Route::post('/products/create', [ProductController::class, 'store']);
         Route::match(['POST', 'PUT'], '/products/{id}', [ProductController::class, 'update']);
@@ -134,8 +137,7 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
 // Link này là callback từ Google trả về
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
-Route::get('/auth/facebook', [FaceBookAuthController::class, 'redirectToFacebook']);
-Route::get('/auth/facebook/callback', [FaceBookAuthController::class, 'handleFacebookCallback']);
+
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 

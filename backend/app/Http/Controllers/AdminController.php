@@ -14,18 +14,83 @@ class AdminController extends Controller
     /**
      * @OA\Post(
      *     path="/admin/login",
-     *     summary="Đăng nhập Admin",
+     *     operationId="adminLogin",
      *     tags={"Admin"},
+     *     summary="Đăng nhập Admin",
+     *     description="API cho phép admin đăng nhập vào hệ thống bằng email và mật khẩu. Nếu thông tin hợp lệ, hệ thống sẽ trả về JWT token để sử dụng cho các API yêu cầu xác thực.",
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *         description="Thông tin đăng nhập của admin",
      *         @OA\JsonContent(
      *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", example="admin@gmail.com"),
-     *             @OA\Property(property="password", type="string", example="password")
+     *             @OA\Property(
+     *                 property="email",
+     *                 type="string",
+     *                 format="email",
+     *                 example="admin@gmail.com",
+     *                 description="Email đăng nhập của admin"
+     *             ),
+     *             @OA\Property(
+     *                 property="password",
+     *                 type="string",
+     *                 format="password",
+     *                 example="password",
+     *                 description="Mật khẩu đăng nhập"
+     *             )
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Đăng nhập thành công"),
-     *     @OA\Response(response=401, description="Sai email hoặc mật khẩu")
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Đăng nhập thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="token",
+     *                 type="string",
+     *                 example="eyJ0eXAiOiJKV1QiLCJh..."
+     *             ),
+     *             @OA\Property(
+     *                 property="admin",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Admin"),
+     *                 @OA\Property(property="email", type="string", example="admin@gmail.com"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time", example="2025-01-01T10:00:00Z"),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2025-01-01T10:00:00Z")
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Sai email hoặc mật khẩu",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Email hoặc mật khẩu admin không đúng"
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu gửi lên không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={
+     *                     "email": {"The email field is required."},
+     *                     "password": {"The password field is required."}
+     *                 }
+     *             )
+     *         )
+     *     )
      * )
      */
     public function login(Request $request)
@@ -101,7 +166,23 @@ class AdminController extends Controller
      *     summary="Lấy danh sách admin/nhân viên",
      *     tags={"Staff Management"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Response(response=200, description="Thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data", 
+     *                 type="array", 
+     *                 @OA\Items(
+     *                     @OA\Property(property="id", type="integer"),
+     *                     @OA\Property(property="name", type="string"),
+     *                     @OA\Property(property="email", type="string"),
+     *                     @OA\Property(property="role", type="string")
+     *                 )
+     *             )
+     *         )
+     *     ),
      *     @OA\Response(response=401, description="Chưa xác thực"),
      *     @OA\Response(response=403, description="Không có quyền")
      * )
@@ -133,7 +214,22 @@ class AdminController extends Controller
      *             @OA\Property(property="is_active", type="integer", example=1)
      *         )
      *     ),
-     *     @OA\Response(response=201, description="Tạo thành công"),
+     *     @OA\Response(
+     *         response=201, 
+     *         description="Tạo thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Tạo tài khoản quản trị thành công"),
+     *             @OA\Property(
+     *                 property="data", 
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="email", type="string"),
+     *                 @OA\Property(property="role", type="string")
+     *             )
+     *         )
+     *     ),
      *     @OA\Response(response=422, description="Dữ liệu không hợp lệ")
      * )
      */
@@ -158,7 +254,21 @@ class AdminController extends Controller
      *     tags={"Staff Management"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data", 
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="email", type="string"),
+     *                 @OA\Property(property="role", type="string")
+     *             )
+     *         )
+     *     ),
      *     @OA\Response(response=404, description="Không tìm thấy")
      * )
      */
@@ -186,7 +296,22 @@ class AdminController extends Controller
      *             @OA\Property(property="is_active", type="boolean")
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Cập nhật thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Cập nhật tài khoản thành công"),
+     *             @OA\Property(
+     *                 property="data", 
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="email", type="string"),
+     *                 @OA\Property(property="role", type="string")
+     *             )
+     *         )
+     *     ),
      *     @OA\Response(response=404, description="Không tìm thấy")
      * )
      */
@@ -215,7 +340,14 @@ class AdminController extends Controller
      *     tags={"Staff Management"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Xóa thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Xóa thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Xóa tài khoản thành công")
+     *         )
+     *     ),
      *     @OA\Response(response=404, description="Không tìm thấy")
      * )
      */

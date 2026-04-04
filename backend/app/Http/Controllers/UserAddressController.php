@@ -38,9 +38,28 @@ class UserAddressController extends Controller
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/UserAddress")
+     *         @OA\JsonContent(
+     *             required={"receiver_name", "receiver_phone", "province_id", "district_id", "ward_id", "address_detail", "type"},
+     *             @OA\Property(property="receiver_name", type="string", example="Nguyễn Văn A"),
+     *             @OA\Property(property="receiver_phone", type="string", example="0987654321"),
+     *             @OA\Property(property="province_id", type="integer", example=202),
+     *             @OA\Property(property="district_id", type="integer", example=111),
+     *             @OA\Property(property="ward_id", type="integer", example=333),
+     *             @OA\Property(property="address_detail", type="string", example="Số 123, Đường ABC"),
+     *             @OA\Property(property="is_default", type="boolean", example=false),
+     *             @OA\Property(property="type", type="string", enum={"home", "office", "other"}, example="home")
+     *         )
      *     ),
-     *     @OA\Response(response=201, description="Tạo thành công")
+     *     @OA\Response(
+     *         response=201, 
+     *         description="Tạo thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Thêm địa chỉ thành công"),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserAddress")
+     *         )
+     *     ),
+     *     @OA\Response(response=422, description="Lỗi validation")
      * )
      */
     public function store(StoreUserAddressRequest $request)
