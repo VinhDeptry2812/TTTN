@@ -375,6 +375,9 @@ class ProductController extends Controller
                         'is_primary' => false,
                         'sort_order' => $index
                     ]);
+
+                    // Dọn dẹp RAM ngay lập tức cho từng ảnh để tránh OOMKilled trên Render
+                    unset($img, $encoded);
                 }
             }
 
@@ -503,6 +506,9 @@ class ProductController extends Controller
                         'is_primary' => false,
                         'sort_order' => $maxSortOrder + $index + 1
                     ]);
+
+                    // Dọn dẹp RAM ngay lập tức để tránh OOMKilled trên Render
+                    unset($img, $encoded);
                 }
             }
 
