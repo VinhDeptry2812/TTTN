@@ -52,7 +52,7 @@ class UserAddressController extends Controller
      *     ),
      *     @OA\Response(
      *         response=201, 
-     *         description="Tạo thành công",
+     *         description="Thêm địa chỉ thành công. Nếu đây là địa chỉ đầu tiên, nó sẽ tự động được đặt làm mặc định. Nếu gửi is_default=true, các địa chỉ khác của user sẽ tự động bị bỏ mặc định.",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Thêm địa chỉ thành công"),

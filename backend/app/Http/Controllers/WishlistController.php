@@ -34,7 +34,15 @@ class WishlistController extends Controller
      *             )
      *         )
      *     ),
-     *     @OA\Response(response=401, description="Chưa đăng nhập")
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tồn sản phẩm này trong danh sách yêu thích",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Sản phẩm không có trong danh sách yêu thích!")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized - Chưa đăng nhập")
      * )
      */
     public function index(Request $request)
@@ -45,13 +53,13 @@ class WishlistController extends Controller
 
         $query = Wishlist::where('user_id', $user->id);
 
-        // Tìm kiếm theo tên sản phẩm hoặc lọc theo danh mục (dùng whereHas thay vì JOIN)
-        if ($request->search || $request->category_id) {
+        // Tìm kiếm theo tên sản phẩm hoặc lọc theo danh mục
+        if ($request->filled('search') || $request->filled('category_id')) {
             $query->whereHas('product', function ($q) use ($request) {
-                if ($request->search) {
+                if ($request->filled('search')) {
                     $q->where('name', 'LIKE', "%{$request->search}%");
                 }
-                if ($request->category_id) {
+                if ($request->filled('category_id')) {
                     $q->where('category_id', $request->category_id);
                 }
             });
@@ -90,8 +98,8 @@ class WishlistController extends Controller
      *     ),
      *
      *     @OA\Response(
-     *         response=200,
-     *         description="Thêm vào wishlist thành công",
+     *         response=201,
+     *         description="Thêm vào wishlist thành công (Chống trùng lặp & Chỉ sản phẩm hoạt động)",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Sản phẩm đã được thêm vào danh sách yêu thích thành công!"),
@@ -114,10 +122,10 @@ class WishlistController extends Controller
     public function store(WishlistRequest $request)
     {
         $validatedData = $request->validated();
-
         $user = Auth::user();
 
-        $wishlist = Wishlist::create([
+        // Chống trùng lặp: Chỉ tạo nếu chưa tồn tại
+        $wishlist = Wishlist::firstOrCreate([
             'user_id' => $user->id,
             'product_id' => $validatedData['product_id'],
         ]);
@@ -126,8 +134,7 @@ class WishlistController extends Controller
             'success' => true,
             'message' => 'Sản phẩm đã được thêm vào danh sách yêu thích thành công!',
             'wishlist' => $wishlist
-        ], 200);
-
+        ], 201);
     }
 
     /**
@@ -170,9 +177,9 @@ class WishlistController extends Controller
 
         if (!$itemDelete) {
             return response()->json([
-                'success' => true,
-                'message' => "Không tìm thấy sản phẩm"
-            ], 200);
+                'success' => false,
+                'message' => "Không tìm thấy sản phẩm trong danh sách yêu thích"
+            ], 404);
         }
 
         $itemDelete->delete();

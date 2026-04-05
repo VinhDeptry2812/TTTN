@@ -199,6 +199,7 @@ class UserController extends Controller
      *         )
      *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)"),
+     *     @OA\Response(response=404, description="Người dùng không tồn tại"),
      *     @OA\Response(response=422, description="Lỗi validation")
      * )
      */
@@ -243,7 +244,7 @@ class UserController extends Controller
      *         )
      *     ),
      *     @OA\Response(response=403, description="Không có quyền truy cập (Yêu cầu superadmin)"),
-     *     @OA\Response(response=404, description="Không tìm thấy người dùng")
+     *     @OA\Response(response=404, description="Người dùng không tồn tại")
      * )
      */
     public function destroy($id)

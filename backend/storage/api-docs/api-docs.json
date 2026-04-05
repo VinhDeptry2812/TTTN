@@ -2586,6 +2586,11 @@
                                     "category_id": {
                                         "type": "integer"
                                     },
+                                    "stock_quantity": {
+                                        "description": "Cập nhật số lượng tồn kho (nếu sản phẩm chỉ có 1 biến thể)",
+                                        "type": "integer",
+                                        "example": 50
+                                    },
                                     "image": {
                                         "description": "Ảnh đại diện mới",
                                         "type": "string",
@@ -2599,12 +2604,10 @@
                                             "format": "binary"
                                         }
                                     },
-                                    "delete_gallery_image_ids[]": {
-                                        "description": "Danh sách ID của các ảnh phụ muốn xóa",
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
-                                        }
+                                    "delete_gallery_ids": {
+                                        "description": "Danh sách ID của các ảnh phụ muốn xóa (JSON string)",
+                                        "type": "string",
+                                        "example": "[1,2,3]"
                                     }
                                 },
                                 "type": "object"
@@ -2738,6 +2741,11 @@
                                     "category_id": {
                                         "type": "integer",
                                         "example": 3
+                                    },
+                                    "stock_quantity": {
+                                        "description": "Số lượng tồn kho ban đầu cho biến thể mặc định",
+                                        "type": "integer",
+                                        "example": 100
                                     },
                                     "image": {
                                         "description": "Ảnh đại diện (Sẽ được nén webp)",
@@ -3214,6 +3222,14 @@
                                         "description": "Ảnh riêng của biến thể",
                                         "type": "string",
                                         "format": "binary"
+                                    },
+                                    "gallery_images[]": {
+                                        "description": "Ảnh gallery cho biến thể",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
                                     }
                                 },
                                 "type": "object"
@@ -3313,9 +3329,22 @@
                                         "example": 1
                                     },
                                     "image": {
-                                        "description": "[TÙY CHỌN] Ảnh mới",
+                                        "description": "[TÙY CHỌN] Ảnh đại diện mới",
                                         "type": "string",
                                         "format": "binary"
+                                    },
+                                    "gallery_images[]": {
+                                        "description": "[TÙY CHỌN] Thêm ảnh gallery mới",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    },
+                                    "delete_gallery_ids": {
+                                        "description": "[TÙY CHỌN] JSON array IDs của ảnh gallery cần xóa",
+                                        "type": "string",
+                                        "example": "[1,2,3]"
                                     }
                                 },
                                 "type": "object"
@@ -3510,7 +3539,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Tạo thành công",
+                        "description": "Thêm địa chỉ thành công. Nếu đây là địa chỉ đầu tiên, nó sẽ tự động được đặt làm mặc định. Nếu gửi is_default=true, các địa chỉ khác của user sẽ tự động bị bỏ mặc định.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3989,6 +4018,9 @@
                     "403": {
                         "description": "Không có quyền truy cập (Yêu cầu superadmin)"
                     },
+                    "404": {
+                        "description": "Người dùng không tồn tại"
+                    },
                     "422": {
                         "description": "Lỗi validation"
                     }
@@ -4040,7 +4072,7 @@
                         "description": "Không có quyền truy cập (Yêu cầu superadmin)"
                     },
                     "404": {
-                        "description": "Không tìm thấy người dùng"
+                        "description": "Người dùng không tồn tại"
                     }
                 },
                 "security": [
@@ -4127,8 +4159,28 @@
                             }
                         }
                     },
+                    "404": {
+                        "description": "Không tồn sản phẩm này trong danh sách yêu thích",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Sản phẩm không có trong danh sách yêu thích!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
                     "401": {
-                        "description": "Chưa đăng nhập"
+                        "description": "Unauthorized - Chưa đăng nhập"
                     }
                 },
                 "security": [
@@ -4165,8 +4217,8 @@
                     }
                 },
                 "responses": {
-                    "200": {
-                        "description": "Thêm vào wishlist thành công",
+                    "201": {
+                        "description": "Thêm vào wishlist thành công (Chống trùng lặp & Chỉ sản phẩm hoạt động)",
                         "content": {
                             "application/json": {
                                 "schema": {
