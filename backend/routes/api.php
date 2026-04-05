@@ -13,6 +13,17 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WishlistController;
 
 Route::get('/products', [ProductController::class, 'index']);
+Route::get('/debug-ping', function() {
+    $path = app_path('Http/Controllers/ProductController.php');
+    $lines = file_exists($path) ? file($path) : [];
+    return response()->json([
+        'status' => 'ok',
+        'file_path' => $path,
+        'line_336' => isset($lines[335]) ? trim($lines[335]) : 'not found',
+        'line_344' => isset($lines[343]) ? trim($lines[343]) : 'not found',
+        'now' => now()->toDateTimeString()
+    ]);
+});
 Route::get('/products/{id}', [ProductController::class, 'show']);
 // Biến thể: lấy danh sách variant (public - không cần đăng nhập)
 Route::get('/products/{productId}/variants', [ProductVariantController::class, 'index']);
