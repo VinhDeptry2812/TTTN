@@ -16,12 +16,8 @@ namespace App\Http\Controllers;
  *     - **user**: Khách hàng (mặc định)."
  * )
  * @OA\Server(
- *     url="{host}/api",
- *     description="API Server",
- *     @OA\ServerVariable(
- *         serverVariable="host",
- *         default=L5_SWAGGER_CONST_HOST
- *     )
+ *     url="/api",
+ *     description="API Server (Tự động nhận diện Host)"
  * )
  * @OA\SecurityScheme(
  *     securityScheme="bearerAuth",

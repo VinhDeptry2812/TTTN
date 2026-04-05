@@ -29,9 +29,11 @@ class UpdateProductRequest extends FormRequest
             'material' => 'nullable|string|max:100',
             'brand' => 'nullable|string|max:100',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
-            'gallery_images' => 'nullable|array|max:5',
-            'gallery_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            'stock_quantity' => 'sometimes|required|integer|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'gallery_images' => 'nullable|array|max:20',
+            'gallery_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:20480',
+            'delete_gallery_ids' => 'nullable', // Cho phép JSON string hoặc array từ FormData
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ];
@@ -55,10 +57,10 @@ class UpdateProductRequest extends FormRequest
             'exists' => ':attribute không hợp lệ.',
             'image.image' => 'File tải lên phải là một hình ảnh.',
             'image.mimes' => 'Hình ảnh phải có định dạng jpeg, png, jpg hoặc webp.',
-            'image.max' => 'Ảnh đại diện không được vượt quá 5MB.',
-            'gallery_images.max' => 'Chỉ được tải lên tối đa 5 ảnh phụ.',
+            'image.max' => 'Ảnh đại diện không được vượt quá 20MB.',
+            'gallery_images.max' => 'Chỉ được tải lên tối đa 20 ảnh phụ.',
             'gallery_images.*.image' => 'File tải lên phải là một hình ảnh hợp lệ.',
-            'gallery_images.*.max' => 'Mỗi ảnh phụ không được vượt quá 5MB.',
+            'gallery_images.*.max' => 'Mỗi ảnh phụ không được vượt quá 20MB.',
         ];
     }
 
@@ -69,6 +71,7 @@ class UpdateProductRequest extends FormRequest
             'category_id' => 'Danh mục',
             'base_price' => 'Giá sản phẩm',
             'sku' => 'Mã SKU',
+            'stock_quantity' => 'Số lượng tồn kho',
             'image' => 'Ảnh sản phẩm',
         ];
     }
