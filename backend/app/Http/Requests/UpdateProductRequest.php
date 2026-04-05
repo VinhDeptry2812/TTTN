@@ -33,8 +33,7 @@ class UpdateProductRequest extends FormRequest
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'gallery_images' => 'nullable|array|max:20',
             'gallery_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:20480',
-            'delete_gallery_image_ids' => 'nullable|array',
-            'delete_gallery_image_ids.*' => 'integer|exists:product_images,id',
+            'delete_gallery_ids' => 'nullable', // Cho phép JSON string hoặc array từ FormData
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ];

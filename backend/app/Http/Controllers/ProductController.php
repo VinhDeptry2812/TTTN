@@ -15,10 +15,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\ProductImage;
 use App\Services\GeminiService;
 use App\Services\GeminiVisionService;
+use App\Services\ImageService;
 use App\Http\Requests\GeminiVisionRequest;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
-use Intervention\Image\Format;
 
 /**
  * @OA\Schema(
@@ -44,6 +42,12 @@ use Intervention\Image\Format;
  */
 class ProductController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     /**
      * @OA\Get(
      *     path="/products",
@@ -341,21 +345,11 @@ class ProductController extends Controller
         DB::beginTransaction();
 
         try {
-            $manager = new ImageManager(new Driver());
-
             if ($request->hasFile('image')) {
-                $imageFile = $request->file('image');
-                $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
-                
-                $image = $manager->decode($imageFile);
-                if ($image->width() > 1000) {
-                    $image->scale(width: 1000);
+                $imagePath = $this->imageService->uploadAndProcess($request->file('image'), 'products');
+                if ($imagePath) {
+                    $validatedData['image_url'] = $imagePath;
                 }
-                $encoded = $image->encodeUsingFormat(Format::WEBP, quality: 80);
-                
-                Storage::disk('public')->put($fileName, (string) $encoded);
-                
-                $validatedData['image_url'] = $fileName;
             }
 
             $product = Product::create($validatedData);
@@ -370,25 +364,15 @@ class ProductController extends Controller
 
             if ($request->hasFile('gallery_images')) {
                 foreach ($request->file('gallery_images') as $index => $galleryImage) {
-                    $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
+                    $imagePath = $this->imageService->uploadAndProcess($galleryImage, 'products');
                     
-                    $img = $manager->decode($galleryImage);
-                    if ($img->width() > 1000) {
-                        $img->scale(width: 1000);
+                    if ($imagePath) {
+                        $product->images()->create([
+                            'image_url' => $imagePath,
+                            'is_primary' => false,
+                            'sort_order' => $index
+                        ]);
                     }
-                    $encoded = $img->encodeUsingFormat(Format::WEBP, quality: 80);
-                    
-                    Storage::disk('public')->put($fileName, (string) $encoded);
-                    
-                    $product->images()->create([
-                        'image_url' => $fileName,
-                        'is_primary' => false,
-                        'sort_order' => $index
-                    ]);
-
-                    // Dọn dẹp RAM ngay lập tức cho từng ảnh để tránh OOMKilled trên Render
-                    unset($img, $encoded);
-                    gc_collect_cycles();
                 }
             }
 
@@ -432,7 +416,7 @@ class ProductController extends Controller
      *                 @OA\Property(property="stock_quantity", type="integer", example=50, description="Cập nhật số lượng tồn kho (nếu sản phẩm chỉ có 1 biến thể)"),
      *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện mới"),
      *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ mới (Tối đa 20)"),
-     *                 @OA\Property(property="delete_gallery_image_ids[]", type="array", @OA\Items(type="integer"), description="Danh sách ID của các ảnh phụ muốn xóa")
+     *                 @OA\Property(property="delete_gallery_ids", type="string", example="[1,2,3]", description="Danh sách ID của các ảnh phụ muốn xóa (JSON string)")
      *             )
      *         )
      *     ),
@@ -460,25 +444,14 @@ class ProductController extends Controller
         DB::beginTransaction();
 
         try {
-            $manager = new ImageManager(new Driver());
-
             if ($request->hasFile('image')) {
-                // Delete old primary image correctly using raw path
-                if ($product->getRawOriginal('image_url')) {
-                    Storage::disk('public')->delete($product->getRawOriginal('image_url'));
+                // Delete old primary image correctly using service
+                $this->imageService->deleteImage($product->getRawOriginal('image_url'));
+                
+                $imagePath = $this->imageService->uploadAndProcess($request->file('image'), 'products');
+                if ($imagePath) {
+                    $validatedData['image_url'] = $imagePath;
                 }
-                
-                $imageFile = $request->file('image');
-                $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
-                
-                $image = $manager->decode($imageFile);
-                if ($image->width() > 1000) {
-                    $image->scale(width: 1000);
-                }
-                $encoded = $image->encodeUsingFormat(Format::WEBP, quality: 80);
-                
-                Storage::disk('public')->put($fileName, (string) $encoded);
-                $validatedData['image_url'] = $fileName;
             }
 
             $product->update($validatedData);
@@ -504,14 +477,18 @@ class ProductController extends Controller
             }
 
             // Xoá các ảnh phụ bị chỉ định xoá
-            if ($request->has('delete_gallery_image_ids')) {
-                $deleteIds = $request->input('delete_gallery_image_ids');
+            if ($request->has('delete_gallery_ids')) {
+                $deleteIds = $request->input('delete_gallery_ids');
+                
+                // Hỗ trợ cả JSON string (từ FormData) và Array (từ JSON request)
+                if (is_string($deleteIds)) {
+                    $deleteIds = json_decode($deleteIds, true);
+                }
+
                 if (is_array($deleteIds)) {
                     $imagesToDelete = $product->images()->whereIn('id', $deleteIds)->get();
                     foreach ($imagesToDelete as $oldImage) {
-                        if ($oldImage->getRawOriginal('image_url')) {
-                            Storage::disk('public')->delete($oldImage->getRawOriginal('image_url'));
-                        }
+                        $this->imageService->deleteImage($oldImage->getRawOriginal('image_url'));
                         $oldImage->forceDelete();
                     }
                 }
@@ -523,25 +500,15 @@ class ProductController extends Controller
                 $maxSortOrder = $product->images()->max('sort_order') ?? -1;
 
                 foreach ($request->file('gallery_images') as $index => $galleryImage) {
-                    $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
+                    $imagePath = $this->imageService->uploadAndProcess($galleryImage, 'products');
                     
-                    $img = $manager->decode($galleryImage);
-                    if ($img->width() > 1000) {
-                        $img->scale(width: 1000);
+                    if ($imagePath) {
+                        $product->images()->create([
+                            'image_url' => $imagePath,
+                            'is_primary' => false,
+                            'sort_order' => $maxSortOrder + $index + 1
+                        ]);
                     }
-                    $encoded = $img->encodeUsingFormat(Format::WEBP, quality: 80);
-                    
-                    Storage::disk('public')->put($fileName, (string) $encoded);
-                    
-                    $product->images()->create([
-                        'image_url' => $fileName,
-                        'is_primary' => false,
-                        'sort_order' => $maxSortOrder + $index + 1
-                    ]);
-
-                    // Dọn dẹp RAM ngay lập tức để tránh OOMKilled trên Render
-                    unset($img, $encoded);
-                    gc_collect_cycles();
                 }
             }
 
@@ -590,13 +557,34 @@ class ProductController extends Controller
             return response()->json(['success' => false, 'message' => 'Sản phẩm không tồn tại'], 404);
         }
 
-        // Soft delete - chỉ đánh dấu xóa, không xóa hẳn ra khỏi CSDL
-        $product->delete();
+        DB::beginTransaction();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Sản phẩm đã được xóa thành công!'
-        ]);
+        try {
+            // Xóa ảnh đại diện vật lý
+            $this->imageService->deleteImage($product->getRawOriginal('image_url'));
+
+            // Xóa tất cả ảnh gallery vật lý
+            foreach ($product->images as $galleryImage) {
+                $this->imageService->deleteImage($galleryImage->getRawOriginal('image_url'));
+                $galleryImage->forceDelete(); // Xóa hẳn record ảnh gallery
+            }
+
+            // Soft delete sản phẩm
+            $product->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sản phẩm đã được xóa thành công!'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi xóa sản phẩm: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
