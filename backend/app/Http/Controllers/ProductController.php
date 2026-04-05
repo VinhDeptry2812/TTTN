@@ -333,8 +333,6 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        return response()->json(['message' => 'Hello from Render!', 'commit' => 'latest'], 200);
-
         $validatedData = $request->validated();
         $validatedData['slug'] = Str::slug($request->name) . '-' . time();
 
@@ -342,16 +340,21 @@ class ProductController extends Controller
 
         try {
             $manager = new ImageManager(new Driver());
+            
+            // Debug: Log version of library if possible
+            if (property_exists($manager, 'version')) {
+                \Log::info("Intervention Image Version: " . $manager->version);
+            }
 
             if ($request->hasFile('image')) {
                 $imageFile = $request->file('image');
                 $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
                 
-                $image = $manager->decode($imageFile);
+                $image = $manager->read($imageFile);
                 if ($image->width() > 1000) {
                     $image->scale(width: 1000);
                 }
-                $encoded = $image->encodeUsingFormat(Format::WEBP, quality: 80);
+                $encoded = $image->toWebp(80);
                 
                 Storage::disk('public')->put($fileName, (string) $encoded);
                 

@@ -24,6 +24,16 @@ Route::get('/debug-ping', function() {
         'now' => now()->toDateTimeString()
     ]);
 });
+Route::get('/debug-opcache-clear', function() {
+    $results = [
+        'opcache_reset' => function_exists('opcache_reset') ? opcache_reset() : 'not supported',
+        'apcu_clear_cache' => function_exists('apcu_clear_cache') ? apcu_clear_cache() : 'not supported',
+        'clearstatcache' => clearstatcache() || true,
+        'php_version' => PHP_VERSION,
+        'time' => now()->toDateTimeString()
+    ];
+    return response()->json($results);
+});
 Route::get('/products/{id}', [ProductController::class, 'show']);
 // Biến thể: lấy danh sách variant (public - không cần đăng nhập)
 Route::get('/products/{productId}/variants', [ProductVariantController::class, 'index']);
