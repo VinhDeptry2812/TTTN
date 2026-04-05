@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use App\Models\ProductImage;
 use App\Services\GeminiService;
 use App\Services\GeminiVisionService;
 use App\Http\Requests\GeminiVisionRequest;
@@ -340,11 +341,6 @@ class ProductController extends Controller
 
         try {
             $manager = new ImageManager(new Driver());
-            
-            // Debug: Log version of library if possible
-            if (property_exists($manager, 'version')) {
-                \Log::info("Intervention Image Version: " . $manager->version);
-            }
 
             if ($request->hasFile('image')) {
                 $imageFile = $request->file('image');
@@ -720,5 +716,68 @@ class ProductController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/products/{productId}/set-primary-image/{imageId}",
+     *     summary="Chọn một ảnh trong Gallery làm ảnh chính của sản phẩm",
+     *     tags={"Products"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="productId", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="imageId", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Đã cập nhật ảnh đại diện mới thành công!")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Sản phẩm hoặc hình ảnh không tồn tại"),
+     *     @OA\Response(response=500, description="Lỗi hệ thống")
+     * )
+     */
+    public function setPrimaryImage($productId, $imageId)
+    {
+        $product = Product::find($productId);
+        if (!$product) {
+            return response()->json(['success' => false, 'message' => 'Sản phẩm không tồn tại'], 404);
+        }
+
+        $image = ProductImage::where('id', $imageId)->where('product_id', $productId)->first();
+        if (!$image) {
+            return response()->json(['success' => false, 'message' => 'Hình ảnh không tồn tại hoặc không thuộc sản phẩm này'], 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            // 1. Reset toàn bộ ảnh gallery của sản phẩm này về false
+            ProductImage::where('product_id', $productId)->update(['is_primary' => false]);
+
+            // 2. Chuyển ảnh được chọn thành primary
+            $image->update(['is_primary' => true]);
+
+            // 3. Đồng bộ hóa link ảnh vào bảng products
+            // Lưu ý: image_url trong product_images đã có accessor trả về full link 
+            // nhưng ta cần lưu đường dẫn tương đối (không có storage/) vào DB
+            // Giả sử logic lưu của bạn là lưu path tương đối.
+            $product->update(['image_url' => $image->getRawOriginal('image_url')]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã cập nhật ảnh đại diện mới thành công!',
+                'image_url' => $product->image_url
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi hệ thống: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -92,6 +92,7 @@ Route::middleware('auth:admin-api')->group(function () {
         Route::post('/products/create', [ProductController::class, 'store']);
         Route::match(['POST', 'PUT'], '/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+        Route::patch('/products/{productId}/set-primary-image/{imageId}', [ProductController::class, 'setPrimaryImage']);
 
         // Product Variants
         Route::post('/products/{productId}/variants', [ProductVariantController::class, 'store']);

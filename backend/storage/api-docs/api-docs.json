@@ -3019,6 +3019,66 @@
                 ]
             }
         },
+        "/products/{productId}/set-primary-image/{imageId}": {
+            "patch": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Chọn một ảnh trong Gallery làm ảnh chính của sản phẩm",
+                "operationId": "8c54d72193bd39908b7d883c35d23864",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "imageId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đã cập nhật ảnh đại diện mới thành công!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Sản phẩm hoặc hình ảnh không tồn tại"
+                    },
+                    "500": {
+                        "description": "Lỗi hệ thống"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/products/{productId}/variants": {
             "get": {
                 "tags": [
