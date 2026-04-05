@@ -30,7 +30,7 @@ class UpdateProductRequest extends FormRequest
             'brand' => 'nullable|string|max:100',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
-            'gallery_images' => 'nullable|array|max:10',
+            'gallery_images' => 'nullable|array|max:20',
             'gallery_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:20480',
             'delete_gallery_image_ids' => 'nullable|array',
             'delete_gallery_image_ids.*' => 'integer|exists:product_images,id',
@@ -58,7 +58,7 @@ class UpdateProductRequest extends FormRequest
             'image.image' => 'File tải lên phải là một hình ảnh.',
             'image.mimes' => 'Hình ảnh phải có định dạng jpeg, png, jpg hoặc webp.',
             'image.max' => 'Ảnh đại diện không được vượt quá 20MB.',
-            'gallery_images.max' => 'Chỉ được tải lên tối đa 10 ảnh phụ.',
+            'gallery_images.max' => 'Chỉ được tải lên tối đa 20 ảnh phụ.',
             'gallery_images.*.image' => 'File tải lên phải là một hình ảnh hợp lệ.',
             'gallery_images.*.max' => 'Mỗi ảnh phụ không được vượt quá 20MB.',
         ];

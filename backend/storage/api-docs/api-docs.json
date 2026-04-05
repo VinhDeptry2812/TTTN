@@ -2592,7 +2592,7 @@
                                         "format": "binary"
                                     },
                                     "gallery_images[]": {
-                                        "description": "Danh sách ảnh phụ mới (Sẽ được thêm vào list ảnh)",
+                                        "description": "Danh sách ảnh phụ mới (Tối đa 20)",
                                         "type": "array",
                                         "items": {
                                             "type": "string",
@@ -2745,7 +2745,7 @@
                                         "format": "binary"
                                     },
                                     "gallery_images[]": {
-                                        "description": "Danh sách ảnh phụ (Tối đa 5)",
+                                        "description": "Danh sách ảnh phụ (Tối đa 20)",
                                         "type": "array",
                                         "items": {
                                             "type": "string",

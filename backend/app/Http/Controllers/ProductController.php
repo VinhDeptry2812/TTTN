@@ -314,7 +314,7 @@ class ProductController extends Controller
      *                 @OA\Property(property="sku", type="string", example="SKU12345"),
      *                 @OA\Property(property="category_id", type="integer", example=3)  ,
      *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện (Sẽ được nén webp)"),
-     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ (Tối đa 5)")
+     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ (Tối đa 20)")
      *             )
      *         )
      *     ),
@@ -425,7 +425,7 @@ class ProductController extends Controller
      *                 @OA\Property(property="base_price", type="number"),
      *                 @OA\Property(property="category_id", type="integer"),
      *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện mới"),
-     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ mới (Sẽ được thêm vào list ảnh)"),
+     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ mới (Tối đa 20)"),
      *                 @OA\Property(property="delete_gallery_image_ids[]", type="array", @OA\Items(type="integer"), description="Danh sách ID của các ảnh phụ muốn xóa")
      *             )
      *         )
