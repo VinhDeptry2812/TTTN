@@ -363,6 +363,10 @@ class AdminController extends Controller
             ], 403);
         }
 
+        // Đổi email để giải phóng email gốc khi xóa (Soft Delete)
+        $admin->email = $admin->email . '_deleted_' . now()->timestamp;
+        $admin->save();
+
         $admin->delete();
 
         return response()->json([
