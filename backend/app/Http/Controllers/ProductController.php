@@ -333,6 +333,8 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
+        return response()->json(['message' => 'Hello from Render!', 'commit' => 'latest'], 200);
+
         $validatedData = $request->validated();
         $validatedData['slug'] = Str::slug($request->name) . '-' . time();
 
