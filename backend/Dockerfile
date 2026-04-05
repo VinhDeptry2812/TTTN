@@ -2,10 +2,10 @@ FROM php:8.4-fpm
 
 RUN apt-get update && apt-get install -y \
     git unzip curl nginx \
-    libpng-dev libjpeg-dev libfreetype6-dev \
-    libonig-dev libzip-dev zip
-
-RUN docker-php-ext-install pdo pdo_mysql mbstring bcmath gd zip pcntl
+    libpng-dev libjpeg-dev libfreetype6-dev libwebp-dev \
+    libonig-dev libzip-dev zip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install pdo pdo_mysql mbstring bcmath gd zip pcntl
 
 # Increase PHP upload and memory limits for image processing
 RUN echo "upload_max_filesize = 200M" > /usr/local/etc/php/conf.d/uploads.ini \
