@@ -333,7 +333,7 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        $validatedData = $request->validated();
+            $validatedData = $request->validated();
         $validatedData['slug'] = Str::slug($request->name) . '-' . time();
 
         DB::beginTransaction();
