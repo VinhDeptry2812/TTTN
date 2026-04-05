@@ -350,11 +350,11 @@ class ProductController extends Controller
                 $imageFile = $request->file('image');
                 $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
                 
-                $image = $manager->read($imageFile);
+                $image = $manager->decode($imageFile);
                 if ($image->width() > 1000) {
                     $image->scale(width: 1000);
                 }
-                $encoded = $image->toWebp(80);
+                $encoded = $image->encodeUsingFormat(Format::WEBP, quality: 80);
                 
                 Storage::disk('public')->put($fileName, (string) $encoded);
                 
