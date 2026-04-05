@@ -29,6 +29,7 @@ class UpdateProductRequest extends FormRequest
             'material' => 'nullable|string|max:100',
             'brand' => 'nullable|string|max:100',
             'description' => 'nullable|string',
+            'stock_quantity' => 'sometimes|required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'gallery_images' => 'nullable|array|max:20',
             'gallery_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:20480',
@@ -71,6 +72,7 @@ class UpdateProductRequest extends FormRequest
             'category_id' => 'Danh mục',
             'base_price' => 'Giá sản phẩm',
             'sku' => 'Mã SKU',
+            'stock_quantity' => 'Số lượng tồn kho',
             'image' => 'Ảnh sản phẩm',
         ];
     }

@@ -33,6 +33,7 @@ class StoreProductRequest extends FormRequest
             'material' => 'nullable|string|max:100',
             'brand' => 'nullable|string|max:100',
             'description' => 'nullable|string',
+            'stock_quantity' => 'required|integer|min:0',
             // Rule quan trọng cho File ảnh
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'gallery_images' => 'nullable|array|max:20',

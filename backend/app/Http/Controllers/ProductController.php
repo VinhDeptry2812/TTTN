@@ -252,7 +252,7 @@ class ProductController extends Controller
             $products = $query->orderBy('id')->paginate(10);
             $products->appends($request->only(['category_id', 'min_price', 'max_price', 'sort_by', 'sort_order', 'all']));
 
-            return response()->json($products->toArray());
+            return response()->json($products);
         }
 
         // Luôn thêm orderBy id để cursor pagination không bỏ sót dữ liệu
@@ -261,7 +261,7 @@ class ProductController extends Controller
         // Phân trang bằng cursor pagination (12 sản phẩm mỗi trang)
         $products = $query->cursorPaginate(12);
 
-        return response()->json($products->toArray());
+        return response()->json($products);
     }
 
     /**
@@ -313,7 +313,8 @@ class ProductController extends Controller
      *                 @OA\Property(property="base_price", type="number", example=5000000),
      *                 @OA\Property(property="sale_price", type="number", nullable=true),
      *                 @OA\Property(property="sku", type="string", example="SKU12345"),
-     *                 @OA\Property(property="category_id", type="integer", example=3)  ,
+     *                 @OA\Property(property="category_id", type="integer", example=3),
+     *                 @OA\Property(property="stock_quantity", type="integer", example=100, description="Số lượng tồn kho ban đầu cho biến thể mặc định"),
      *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện (Sẽ được nén webp)"),
      *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ (Tối đa 20)")
      *             )
@@ -359,6 +360,14 @@ class ProductController extends Controller
 
             $product = Product::create($validatedData);
 
+            // Tự động tạo biến thể mặc định (cho sản phẩm không có biến thể)
+            $product->variants()->create([
+                'sku' => $product->sku,
+                'price' => $product->sale_price ?? $product->base_price,
+                'stock_quantity' => $request->stock_quantity,
+                'is_available' => true,
+            ]);
+
             if ($request->hasFile('gallery_images')) {
                 foreach ($request->file('gallery_images') as $index => $galleryImage) {
                     $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
@@ -385,7 +394,7 @@ class ProductController extends Controller
 
             DB::commit();
 
-            $product->load('images');
+            $product->load(['images', 'variants']);
 
             return response()->json([
                 'success' => true,
@@ -420,6 +429,7 @@ class ProductController extends Controller
      *                 @OA\Property(property="description", type="string"),
      *                 @OA\Property(property="base_price", type="number"),
      *                 @OA\Property(property="category_id", type="integer"),
+     *                 @OA\Property(property="stock_quantity", type="integer", example=50, description="Cập nhật số lượng tồn kho (nếu sản phẩm chỉ có 1 biến thể)"),
      *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện mới"),
      *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ mới (Tối đa 20)"),
      *                 @OA\Property(property="delete_gallery_image_ids[]", type="array", @OA\Items(type="integer"), description="Danh sách ID của các ảnh phụ muốn xóa")
@@ -473,6 +483,26 @@ class ProductController extends Controller
 
             $product->update($validatedData);
 
+            // Đồng bộ với biến thể mặc định nếu sản phẩm chỉ có <= 1 biến thể
+            $variantsCount = $product->variants()->count();
+            if ($variantsCount <= 1) {
+                $variantData = [
+                    'sku' => $product->sku,
+                    'price' => $product->sale_price ?? $product->base_price,
+                ];
+                
+                if ($request->has('stock_quantity')) {
+                    $variantData['stock_quantity'] = $request->stock_quantity;
+                }
+
+                if ($variantsCount == 0) {
+                    $variantData['is_available'] = true;
+                    $product->variants()->create($variantData);
+                } else {
+                    $product->variants()->first()->update($variantData);
+                }
+            }
+
             // Xoá các ảnh phụ bị chỉ định xoá
             if ($request->has('delete_gallery_image_ids')) {
                 $deleteIds = $request->input('delete_gallery_image_ids');
@@ -517,7 +547,7 @@ class ProductController extends Controller
 
             DB::commit();
 
-            $product->load('images');
+            $product->load(['images', 'variants']);
 
             return response()->json([
                 'success' => true,
