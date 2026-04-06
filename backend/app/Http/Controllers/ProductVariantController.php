@@ -117,17 +117,16 @@ class ProductVariantController extends Controller
         $validated['product_id'] = $productId;
 
         if ($request->hasFile('image')) {
-            $manager = new ImageManager(new Driver());
-            $imageFile = $request->file('image');
-            $fileName = 'variants/' . uniqid() . '_' . time() . '.webp';
-            
-            $image = $manager->read($imageFile);
-            if ($image->width() > 1000) {
-                $image->scale(width: 1000);
-            }
-            $encoded = $image->toWebp(80);
-            Storage::disk('public')->put($fileName, (string) $encoded);
-            $validated['image_url'] = $fileName;
+            $uploaded = cloudinary()->upload($request->file('image')->getRealPath(), [
+                'folder' => 'variants',
+                'transformation' => [
+                    'width' => 1000,
+                    'crop' => 'limit',
+                    'quality' => 'auto',
+                    'fetch_format' => 'webp'
+                ]
+            ]);
+            $validated['image_url'] = $uploaded->getSecurePath();
         }
 
         $variant = ProductVariant::create($validated);
@@ -185,20 +184,28 @@ class ProductVariantController extends Controller
         $validated = $request->validated();
 
         if ($request->hasFile('image')) {
-            if ($variant->getRawOriginal('image_url')) {
-                Storage::disk('public')->delete($variant->getRawOriginal('image_url'));
+            if ($oldUrl = $variant->getRawOriginal('image_url')) {
+                if (\Illuminate\Support\Str::contains($oldUrl, 'res.cloudinary.com')) {
+                    $parts = explode('/upload/', $oldUrl);
+                    if (isset($parts[1])) {
+                        $path = preg_replace('/^v\d+\//', '', $parts[1]); 
+                        $publicId = pathinfo($path, PATHINFO_DIRNAME) . '/' . pathinfo($path, PATHINFO_FILENAME);
+                        if ($publicId && $publicId !== '.') cloudinary()->destroy($publicId);
+                    }
+                } else {
+                    Storage::disk('public')->delete($oldUrl);
+                }
             }
-            $manager = new ImageManager(new Driver());
-            $imageFile = $request->file('image');
-            $fileName = 'variants/' . uniqid() . '_' . time() . '.webp';
-            
-            $image = $manager->read($imageFile);
-            if ($image->width() > 1000) {
-                $image->scale(width: 1000);
-            }
-            $encoded = $image->toWebp(80);
-            Storage::disk('public')->put($fileName, (string) $encoded);
-            $validated['image_url'] = $fileName;
+            $uploaded = cloudinary()->upload($request->file('image')->getRealPath(), [
+                'folder' => 'variants',
+                'transformation' => [
+                    'width' => 1000,
+                    'crop' => 'limit',
+                    'quality' => 'auto',
+                    'fetch_format' => 'webp'
+                ]
+            ]);
+            $validated['image_url'] = $uploaded->getSecurePath();
         }
 
         $variant->update($validated);
@@ -237,8 +244,17 @@ class ProductVariantController extends Controller
         }
 
         // Xóa ảnh của biến thể nếu có
-        if ($variant->getRawOriginal('image_url')) {
-            Storage::disk('public')->delete($variant->getRawOriginal('image_url'));
+        if ($oldUrl = $variant->getRawOriginal('image_url')) {
+            if (\Illuminate\Support\Str::contains($oldUrl, 'res.cloudinary.com')) {
+                $parts = explode('/upload/', $oldUrl);
+                if (isset($parts[1])) {
+                    $path = preg_replace('/^v\d+\//', '', $parts[1]); 
+                    $publicId = pathinfo($path, PATHINFO_DIRNAME) . '/' . pathinfo($path, PATHINFO_FILENAME);
+                    if ($publicId && $publicId !== '.') cloudinary()->destroy($publicId);
+                }
+            } else {
+                Storage::disk('public')->delete($oldUrl);
+            }
         }
 
         $variant->delete();

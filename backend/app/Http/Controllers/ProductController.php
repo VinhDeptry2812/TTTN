@@ -335,21 +335,17 @@ class ProductController extends Controller
 
         $validatedData['slug'] = Str::slug($request->name) . '-' . time();
 
-        $manager = new ImageManager(new Driver());
-
         if ($request->hasFile('image')) {
-            $imageFile = $request->file('image');
-            $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
-            
-            $image = $manager->read($imageFile);
-            if ($image->width() > 1000) {
-                $image->scale(width: 1000);
-            }
-            $encoded = $image->toWebp(80);
-            
-            Storage::disk('public')->put($fileName, (string) $encoded);
-            
-            $validatedData['image_url'] = $fileName;
+            $uploaded = cloudinary()->upload($request->file('image')->getRealPath(), [
+                'folder' => 'products',
+                'transformation' => [
+                    'width' => 1000,
+                    'crop' => 'limit',
+                    'quality' => 'auto',
+                    'fetch_format' => 'webp'
+                ]
+            ]);
+            $validatedData['image_url'] = $uploaded->getSecurePath();
         }
 
         $product = Product::create($validatedData);
@@ -357,18 +353,18 @@ class ProductController extends Controller
         // Upload gallery images
         if ($request->hasFile('gallery_images')) {
             foreach ($request->file('gallery_images') as $index => $galleryImage) {
-                $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
-                
-                $img = $manager->read($galleryImage);
-                if ($img->width() > 1000) {
-                    $img->scale(width: 1000);
-                }
-                $encoded = $img->toWebp(80);
-                
-                Storage::disk('public')->put($fileName, (string) $encoded);
+                $uploaded = cloudinary()->upload($galleryImage->getRealPath(), [
+                    'folder' => 'products_gallery',
+                    'transformation' => [
+                        'width' => 1000,
+                        'crop' => 'limit',
+                        'quality' => 'auto',
+                        'fetch_format' => 'webp'
+                    ]
+                ]);
                 
                 $product->images()->create([
-                    'image_url' => $fileName,
+                    'image_url' => $uploaded->getSecurePath(),
                     'is_primary' => false,
                     'sort_order' => $index
                 ]);
@@ -427,25 +423,34 @@ class ProductController extends Controller
         }
 
         $validatedData = $request->validated();
-        $manager = new ImageManager(new Driver());
 
         if ($request->hasFile('image')) {
             // Delete old primary image correctly using raw path
-            if ($product->getRawOriginal('image_url')) {
-                Storage::disk('public')->delete($product->getRawOriginal('image_url'));
+            if ($oldUrl = $product->getRawOriginal('image_url')) {
+                if (\Illuminate\Support\Str::contains($oldUrl, 'res.cloudinary.com')) {
+                    $parts = explode('/upload/', $oldUrl);
+                    if (isset($parts[1])) {
+                        $path = preg_replace('/^v\d+\//', '', $parts[1]); 
+                        $publicId = pathinfo($path, PATHINFO_DIRNAME) . '/' . pathinfo($path, PATHINFO_FILENAME);
+                        if ($publicId && $publicId !== '.') {
+                            cloudinary()->destroy($publicId);
+                        }
+                    }
+                } else {
+                    Storage::disk('public')->delete($oldUrl);
+                }
             }
             
-            $imageFile = $request->file('image');
-            $fileName = 'products/' . uniqid() . '_' . time() . '.webp';
-            
-            $image = $manager->read($imageFile);
-            if ($image->width() > 1000) {
-                $image->scale(width: 1000);
-            }
-            $encoded = $image->toWebp(80);
-            
-            Storage::disk('public')->put($fileName, (string) $encoded);
-            $validatedData['image_url'] = $fileName;
+            $uploaded = cloudinary()->upload($request->file('image')->getRealPath(), [
+                'folder' => 'products',
+                'transformation' => [
+                    'width' => 1000,
+                    'crop' => 'limit',
+                    'quality' => 'auto',
+                    'fetch_format' => 'webp'
+                ]
+            ]);
+            $validatedData['image_url'] = $uploaded->getSecurePath();
         }
 
         $product->update($validatedData);
@@ -453,25 +458,34 @@ class ProductController extends Controller
         if ($request->hasFile('gallery_images')) {
             // Replace all existing gallery images
             foreach ($product->images as $oldImage) {
-                if ($oldImage->getRawOriginal('image_url')) {
-                    Storage::disk('public')->delete($oldImage->getRawOriginal('image_url'));
+                if ($oldUrl = $oldImage->getRawOriginal('image_url')) {
+                    if (\Illuminate\Support\Str::contains($oldUrl, 'res.cloudinary.com')) {
+                        $parts = explode('/upload/', $oldUrl);
+                        if (isset($parts[1])) {
+                            $path = preg_replace('/^v\d+\//', '', $parts[1]); 
+                            $publicId = pathinfo($path, PATHINFO_DIRNAME) . '/' . pathinfo($path, PATHINFO_FILENAME);
+                            if ($publicId && $publicId !== '.') cloudinary()->destroy($publicId);
+                        }
+                    } else {
+                        Storage::disk('public')->delete($oldUrl);
+                    }
                 }
                 $oldImage->delete(); // Or permanent delete since the record logic uses soft delete maybe
             }
 
             foreach ($request->file('gallery_images') as $index => $galleryImage) {
-                $fileName = 'products/gallery_' . uniqid() . '_' . time() . '.webp';
-                
-                $img = $manager->read($galleryImage);
-                if ($img->width() > 1000) {
-                    $img->scale(width: 1000);
-                }
-                $encoded = $img->toWebp(80);
-                
-                Storage::disk('public')->put($fileName, (string) $encoded);
+                $uploaded = cloudinary()->upload($galleryImage->getRealPath(), [
+                    'folder' => 'products_gallery',
+                    'transformation' => [
+                        'width' => 1000,
+                        'crop' => 'limit',
+                        'quality' => 'auto',
+                        'fetch_format' => 'webp'
+                    ]
+                ]);
                 
                 $product->images()->create([
-                    'image_url' => $fileName,
+                    'image_url' => $uploaded->getSecurePath(),
                     'is_primary' => false,
                     'sort_order' => $index
                 ]);
