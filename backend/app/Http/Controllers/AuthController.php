@@ -54,8 +54,24 @@ class AuthController extends Controller
      *             @OA\Property(property="password_confirmation", type="string", example="123456")
      *         )
      *     ),
-     *     @OA\Response(response=201, description="Đăng ký thành công"),
-     *     @OA\Response(response=422, description="Validation lỗi")
+     *     @OA\Response(
+     *         response=201, 
+     *         description="Đăng ký thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Đăng ký thành công"),
+     *             @OA\Property(property="token", type="string", example="eyJhbGciOiJIUz..."),
+     *             @OA\Property(property="user", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422, 
+     *         description="Lỗi validation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Dữ liệu gửi lên không hợp lệ."),
+     *             @OA\Property(property="errors", type="object", example={"email": {"Email đã được sử dụng."}})
+     *         )
+     *     )
      * )
      */
     // SIGNUP
@@ -83,18 +99,104 @@ class AuthController extends Controller
     /**
      * @OA\Post(
      *     path="/login",
-     *     summary="Đăng nhập",
+     *     summary="Đăng nhập hệ thống",
+     *     description="API cho phép người dùng đăng nhập bằng email và mật khẩu. Nếu thông tin hợp lệ, hệ thống sẽ trả về JWT token.",
+     *     operationId="loginUser",
      *     tags={"Auth"},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *         description="Thông tin đăng nhập",
      *         @OA\JsonContent(
      *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", example="user@gmail.com"),
-     *             @OA\Property(property="password", type="string", example="123456")
+     *
+     *             @OA\Property(
+     *                 property="email",
+     *                 type="string",
+     *                 format="email",
+     *                 example="user@gmail.com",
+     *                 description="Email của người dùng"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="password",
+     *                 type="string",
+     *                 format="password",
+     *                 example="123456",
+     *                 description="Mật khẩu đăng nhập"
+     *             )
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Đăng nhập thành công"),
-     *     @OA\Response(response=401, description="Sai email hoặc mật khẩu")
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Đăng nhập thành công",
+     *         @OA\JsonContent(
+     *             type="object",
+     *
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=true
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Đăng nhập thành công"
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="token",
+     *                 type="string",
+     *                 example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="user",
+     *                 type="object",
+     *
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Nguyen Van A"),
+     *                 @OA\Property(property="email", type="string", example="user@gmail.com"),
+     *                 @OA\Property(property="is_active", type="boolean", example=true)
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Sai email hoặc mật khẩu",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Email hoặc mật khẩu không đúng")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Tài khoản bị khóa",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Dữ liệu gửi lên không hợp lệ."),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={
+     *                     "email": {"Email không hợp lệ."},
+     *                     "password": {"Mật khẩu không hợp lệ."}
+     *                 }
+     *             )
+     *         )
+     *     )
      * )
      */
     // LOGIN
@@ -148,6 +250,25 @@ class AuthController extends Controller
         }
     }
 
+
+
+    /**
+     * @OA\Get(
+     *     path="/me",
+     *     summary="Lấy thông tin người dùng đang đăng nhập",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="user", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
     // LẤY THÔNG TIN USER ĐANG ĐĂNG NHẬP
     public function me()
     {
@@ -228,7 +349,7 @@ class AuthController extends Controller
             'created_at' => now(),
         ]);
         // Link gửi cho user (trỏ về frontend)
-        $resetLink = env('FRONTEND_URL', 'https://lt-createwebfunitureluxury.onrender.com/resetpassword')
+        $resetLink = env('FRONTEND_URL_RESSETPASS', 'https://lt-createwebfunitureluxury.onrender.com/reset-password')
             . '?token=' . $token
             . '&email=' . urlencode($request->email);
         // Gửi mail
@@ -440,7 +561,6 @@ class AuthController extends Controller
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
                     'password' => Hash::make(Str::random(24)),
-                    'avatar' => $googleUser->getAvatar(),
                 ]);
             }
 
@@ -469,91 +589,7 @@ class AuthController extends Controller
 
     }
 
-    /**
-     * @OA\Get(
-     *     path="/auth/facebook",
-     *     summary="Chuyển hướng sang trang đăng nhập Facebook",
-     *     tags={"Auth"},
-     *     @OA\Response(response=302, description="Redirect to Facebook OAuth")
-     * )
-     */
-    public function redirectToFacebook()
-    {
-        $redirectUrl = config('services.facebook.redirect');
-        $driver = Socialite::driver('facebook')->stateless()->redirectUrl($redirectUrl);
 
-        // Bỏ qua kiểm tra SSL trên môi trường local (Windows)
-        if (config('app.env') === 'local') {
-            $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
-        }
 
-        $url = $driver->redirect()->getTargetUrl();
 
-        return response()
-            ->view('auth.redirect', ['url' => $url])
-            ->header('Content-Type', 'text/html');
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/auth/facebook/callback",
-     *     summary="Xử lý callback từ Facebook",
-     *     tags={"Auth"},
-     *     @OA\Response(response=302, description="Redirect về Frontend kèm token hoặc lỗi")
-     * )
-     */
-    public function handleFacebookCallback()
-    {
-        try {
-            $redirectUrl = config('services.facebook.redirect');
-            $driver = Socialite::driver('facebook')->stateless()->redirectUrl($redirectUrl);
-
-            // Bỏ qua kiểm tra SSL trên môi trường local (Windows)
-            if (config('app.env') === 'local') {
-                $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
-            }
-
-            $facebookUser = $driver->user();
-
-            // Tìm user theo email (Facebook có thể không trả về email nếu user không cung cấp)
-            $email = $facebookUser->getEmail();
-
-            if (!$email) {
-                // Nếu không có email, fallback về facebook_id@facebook.com hoặc báo lỗi
-                $email = $facebookUser->getId() . '@facebook.com';
-            }
-
-            $user = User::where('email', $email)->first();
-
-            if (!$user) {
-                // Tạo mới nếu chưa có
-                $user = User::create([
-                    'name' => $facebookUser->getName() ?? $facebookUser->getNickname() ?? 'Facebook User',
-                    'email' => $email,
-                    'password' => Hash::make(Str::random(24)),
-                    'avatar' => $facebookUser->getAvatar(),
-                ]);
-            }
-
-            // Đăng nhập và tạo token
-            /** @var string $token */
-            $token = Auth::login($user);
-
-            // Redirect về Frontend kèm Token
-            return response()
-                ->view('auth.callback', [
-                    'token' => $token,
-                    'user' => $user
-                ])
-                ->header('Content-Type', 'text/html');
-
-        } catch (\Exception $e) {
-            \Log::error('Facebook Login Error: ' . $e->getMessage());
-            return response()
-                ->view('auth.callback', [
-                    'error' => 'facebook_failed'
-                ])
-                ->header('Content-Type', 'text/html');
-        }
-    }
 }

@@ -23,11 +23,11 @@ class UpdateAdminRequest extends FormRequest
      */
     public function rules(): array
     {
-        $adminId = $this->route('admin');
+        $adminId = $this->route('id');
 
         return [
             'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|string|email|max:255|unique:admins,email,' . $adminId,
+            'email' => 'sometimes|string|email|max:255|unique:admins,email,' . $adminId . ',id,deleted_at,NULL',
             'password' => 'sometimes|string|min:8|confirmed',
             'role' => 'sometimes|string|in:admin,staff,superadmin',
             'is_active' => 'sometimes|boolean'

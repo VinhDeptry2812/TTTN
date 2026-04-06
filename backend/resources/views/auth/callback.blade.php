@@ -84,11 +84,11 @@
 
     function fallbackRedirect() {
         const token = data.token;
-        const frontendUrl = "{{ env('FRONTEND_URL', 'https://lt-createwebfunitureluxury.onrender.com') }}";
+        const frontendUrl = "{{ config('app.frontend_url') }}";
         if (token) {
-            window.location.href = frontendUrl + "/login?token=" + token;
+            window.location.href = frontendUrl + "/?token=" + token;
         } else {
-            window.location.href = frontendUrl + "/login?error=google_failed";
+            window.location.href = frontendUrl + "/?error=google_failed";
         }
     }
 

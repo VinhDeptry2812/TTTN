@@ -41,6 +41,18 @@ class UserAddress extends Model
     ];
 
     /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+        ];
+    }
+
+    /**
      * Lấy người dùng sở hữu địa chỉ này
      */
     public function user()
