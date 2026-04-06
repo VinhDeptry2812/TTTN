@@ -7,12 +7,11 @@
     },
     "servers": [
         {
-<<<<<<< Updated upstream
-            "url": "/api"
-=======
             "url": "/api",
             "description": "API Server (Tự động nhận diện Host)"
->>>>>>> Stashed changes
+        },
+        {
+            "url": "/api"
         }
     ],
     "paths": {
@@ -2240,7 +2239,10 @@
                                 "required": [
                                     "receiver_name",
                                     "receiver_phone",
-                                    "shipping_address",
+                                    "province_id",
+                                    "district_id",
+                                    "ward_id",
+                                    "address_detail",
                                     "payment_method"
                                 ],
                                 "properties": {
@@ -2252,9 +2254,21 @@
                                         "type": "string",
                                         "example": "0123456789"
                                     },
-                                    "shipping_address": {
+                                    "province_id": {
+                                        "type": "integer",
+                                        "example": 202
+                                    },
+                                    "district_id": {
+                                        "type": "integer",
+                                        "example": 1442
+                                    },
+                                    "ward_id": {
+                                        "type": "integer",
+                                        "example": 20109
+                                    },
+                                    "address_detail": {
                                         "type": "string",
-                                        "example": "123 Duong ABC, Quan 1, TP.HCM"
+                                        "example": "Số 123, Đường ABC"
                                     },
                                     "payment_method": {
                                         "type": "string",
@@ -2325,6 +2339,208 @@
                                 }
                             }
                         }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/orders": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Danh sách đơn hàng của người dùng hiện tại",
+                "operationId": "325fd3d55bbe9bb39645269928fa4983",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/orders/{id}": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Chi tiết đơn hàng",
+                "operationId": "f088d34a2737782215f435f854e31de5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy đơn hàng"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/orders/{id}/cancel": {
+            "post": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Hủy đơn hàng",
+                "description": "Chỉ được hủy khi trạng thái là pending",
+                "operationId": "f01ac571088d34f82562b3d48911f6f4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hủy thành công"
+                    },
+                    "422": {
+                        "description": "Không thể hủy đơn hàng ở trạng thái hiện tại"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/orders": {
+            "get": {
+                "tags": [
+                    "Admin Orders"
+                ],
+                "summary": "[Admin] Danh sách toàn bộ đơn hàng",
+                "operationId": "36165b6ece5d97e1fad9531988955d13",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/orders/{id}": {
+            "get": {
+                "tags": [
+                    "Admin Orders"
+                ],
+                "summary": "[Admin] Chi tiết đơn hàng",
+                "operationId": "4152a373b1695abb81538ce82956bd11",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/orders/{id}/status": {
+            "put": {
+                "tags": [
+                    "Admin Orders"
+                ],
+                "summary": "[Admin] Cập nhật trạng thái đơn hàng",
+                "operationId": "2c671548bfccd7f6ddbc7ea21773ed61",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "order_status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "confirmed",
+                                            "processing",
+                                            "shipped",
+                                            "delivered",
+                                            "cancelled",
+                                            "returned"
+                                        ]
+                                    },
+                                    "payment_status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "paid",
+                                            "failed"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công"
                     }
                 },
                 "security": [
@@ -2805,8 +3021,6 @@
                 ]
             }
         },
-<<<<<<< Updated upstream
-=======
         "/products/generate-ai-description": {
             "post": {
                 "tags": [
@@ -3292,7 +3506,6 @@
                 ]
             }
         },
->>>>>>> Stashed changes
         "/products/{productId}/variants": {
             "get": {
                 "tags": [
@@ -5035,6 +5248,10 @@
         {
             "name": "Orders",
             "description": "Orders"
+        },
+        {
+            "name": "Admin Orders",
+            "description": "Admin Orders"
         },
         {
             "name": "Products",
