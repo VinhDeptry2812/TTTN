@@ -47,11 +47,4 @@ class ProductVariant extends Model
     {
         return $this->hasMany(ProductImage::class);
     }
-
-    public function getImageUrlAttribute($value)
-    {
-        if (!$value) return null;
-        if (str_starts_with($value, 'http')) return $value;
-        return asset('storage/' . $value);
-    }
 }
