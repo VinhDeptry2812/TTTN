@@ -337,7 +337,7 @@ class ProductController extends Controller
         $validatedData['slug'] = Str::slug($request->name) . '-' . time();
 
         if ($request->hasFile('image')) {
-            $uploaded = cloudinary()->upload($request->file('image')->getRealPath(), [
+            $uploaded = cloudinary()->uploadApi()->upload($request->file('image')->getRealPath(), [
                 'folder' => 'products',
                 'transformation' => [
                     'width' => 1000,
@@ -346,7 +346,7 @@ class ProductController extends Controller
                     'fetch_format' => 'webp'
                 ]
             ]);
-            $validatedData['image_url'] = $uploaded->getSecurePath();
+            $validatedData['image_url'] = $uploaded['secure_url'];
         }
 
         $product = Product::create($validatedData);
@@ -354,7 +354,7 @@ class ProductController extends Controller
         // Upload gallery images
         if ($request->hasFile('gallery_images')) {
             foreach ($request->file('gallery_images') as $index => $galleryImage) {
-                $uploaded = cloudinary()->upload($galleryImage->getRealPath(), [
+                $uploaded = cloudinary()->uploadApi()->upload($galleryImage->getRealPath(), [
                     'folder' => 'products_gallery',
                     'transformation' => [
                         'width' => 1000,
@@ -365,7 +365,7 @@ class ProductController extends Controller
                 ]);
                 
                 $product->images()->create([
-                    'image_url' => $uploaded->getSecurePath(),
+                    'image_url' => $uploaded['secure_url'],
                     'is_primary' => false,
                     'sort_order' => $index
                 ]);
@@ -435,7 +435,7 @@ class ProductController extends Controller
                         $path = preg_replace('/^v\d+\//', '', $parts[1]); 
                         $publicId = pathinfo($path, PATHINFO_DIRNAME) . '/' . pathinfo($path, PATHINFO_FILENAME);
                         if ($publicId && $publicId !== '.') {
-                            cloudinary()->destroy($publicId);
+                            cloudinary()->uploadApi()->destroy($publicId);
                         }
                     }
                 } else {
@@ -443,7 +443,7 @@ class ProductController extends Controller
                 }
             }
             
-            $uploaded = cloudinary()->upload($request->file('image')->getRealPath(), [
+            $uploaded = cloudinary()->uploadApi()->upload($request->file('image')->getRealPath(), [
                 'folder' => 'products',
                 'transformation' => [
                     'width' => 1000,
@@ -452,7 +452,7 @@ class ProductController extends Controller
                     'fetch_format' => 'webp'
                 ]
             ]);
-            $validatedData['image_url'] = $uploaded->getSecurePath();
+            $validatedData['image_url'] = $uploaded['secure_url'];
         }
 
         $product->update($validatedData);
@@ -466,7 +466,7 @@ class ProductController extends Controller
                         if (isset($parts[1])) {
                             $path = preg_replace('/^v\d+\//', '', $parts[1]); 
                             $publicId = pathinfo($path, PATHINFO_DIRNAME) . '/' . pathinfo($path, PATHINFO_FILENAME);
-                            if ($publicId && $publicId !== '.') cloudinary()->destroy($publicId);
+                            if ($publicId && $publicId !== '.') cloudinary()->uploadApi()->destroy($publicId);
                         }
                     } else {
                         Storage::disk('public')->delete($oldUrl);
@@ -476,7 +476,7 @@ class ProductController extends Controller
             }
 
             foreach ($request->file('gallery_images') as $index => $galleryImage) {
-                $uploaded = cloudinary()->upload($galleryImage->getRealPath(), [
+                $uploaded = cloudinary()->uploadApi()->upload($galleryImage->getRealPath(), [
                     'folder' => 'products_gallery',
                     'transformation' => [
                         'width' => 1000,
@@ -487,7 +487,7 @@ class ProductController extends Controller
                 ]);
                 
                 $product->images()->create([
-                    'image_url' => $uploaded->getSecurePath(),
+                    'image_url' => $uploaded['secure_url'],
                     'is_primary' => false,
                     'sort_order' => $index
                 ]);

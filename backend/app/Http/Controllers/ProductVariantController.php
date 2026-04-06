@@ -117,7 +117,7 @@ class ProductVariantController extends Controller
         $validated['product_id'] = $productId;
 
         if ($request->hasFile('image')) {
-            $uploaded = cloudinary()->upload($request->file('image')->getRealPath(), [
+            $uploaded = cloudinary()->uploadApi()->upload($request->file('image')->getRealPath(), [
                 'folder' => 'variants',
                 'transformation' => [
                     'width' => 1000,
@@ -126,7 +126,7 @@ class ProductVariantController extends Controller
                     'fetch_format' => 'webp'
                 ]
             ]);
-            $validated['image_url'] = $uploaded->getSecurePath();
+            $validated['image_url'] = $uploaded['secure_url'];
         }
 
         $variant = ProductVariant::create($validated);
@@ -190,13 +190,13 @@ class ProductVariantController extends Controller
                     if (isset($parts[1])) {
                         $path = preg_replace('/^v\d+\//', '', $parts[1]); 
                         $publicId = pathinfo($path, PATHINFO_DIRNAME) . '/' . pathinfo($path, PATHINFO_FILENAME);
-                        if ($publicId && $publicId !== '.') cloudinary()->destroy($publicId);
+                        if ($publicId && $publicId !== '.') cloudinary()->uploadApi()->destroy($publicId);
                     }
                 } else {
                     Storage::disk('public')->delete($oldUrl);
                 }
             }
-            $uploaded = cloudinary()->upload($request->file('image')->getRealPath(), [
+            $uploaded = cloudinary()->uploadApi()->upload($request->file('image')->getRealPath(), [
                 'folder' => 'variants',
                 'transformation' => [
                     'width' => 1000,
@@ -205,7 +205,7 @@ class ProductVariantController extends Controller
                     'fetch_format' => 'webp'
                 ]
             ]);
-            $validated['image_url'] = $uploaded->getSecurePath();
+            $validated['image_url'] = $uploaded['secure_url'];
         }
 
         $variant->update($validated);
@@ -250,7 +250,7 @@ class ProductVariantController extends Controller
                 if (isset($parts[1])) {
                     $path = preg_replace('/^v\d+\//', '', $parts[1]); 
                     $publicId = pathinfo($path, PATHINFO_DIRNAME) . '/' . pathinfo($path, PATHINFO_FILENAME);
-                    if ($publicId && $publicId !== '.') cloudinary()->destroy($publicId);
+                    if ($publicId && $publicId !== '.') cloudinary()->uploadApi()->destroy($publicId);
                 }
             } else {
                 Storage::disk('public')->delete($oldUrl);
