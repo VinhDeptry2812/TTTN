@@ -11,12 +11,11 @@ use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Support\Str;
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
-use App\Models\ProductImage;
 use App\Services\GeminiService;
 use App\Services\GeminiVisionService;
-use App\Services\ImageService;
 use App\Http\Requests\GeminiVisionRequest;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 /**
  * @OA\Schema(
@@ -42,12 +41,6 @@ use App\Http\Requests\GeminiVisionRequest;
  */
 class ProductController extends Controller
 {
-    protected $imageService;
-
-    public function __construct(ImageService $imageService)
-    {
-        $this->imageService = $imageService;
-    }
     /**
      * @OA\Get(
      *     path="/products",
@@ -256,7 +249,7 @@ class ProductController extends Controller
             $products = $query->orderBy('id')->paginate(10);
             $products->appends($request->only(['category_id', 'min_price', 'max_price', 'sort_by', 'sort_order', 'all']));
 
-            return response()->json($products);
+            return response()->json($products->toArray());
         }
 
         // Luôn thêm orderBy id để cursor pagination không bỏ sót dữ liệu
@@ -265,7 +258,7 @@ class ProductController extends Controller
         // Phân trang bằng cursor pagination (12 sản phẩm mỗi trang)
         $products = $query->cursorPaginate(12);
 
-        return response()->json($products);
+        return response()->json($products->toArray());
     }
 
     /**
@@ -317,10 +310,9 @@ class ProductController extends Controller
      *                 @OA\Property(property="base_price", type="number", example=5000000),
      *                 @OA\Property(property="sale_price", type="number", nullable=true),
      *                 @OA\Property(property="sku", type="string", example="SKU12345"),
-     *                 @OA\Property(property="category_id", type="integer", example=3),
-     *                 @OA\Property(property="stock_quantity", type="integer", example=100, description="Số lượng tồn kho ban đầu cho biến thể mặc định"),
+     *                 @OA\Property(property="category_id", type="integer", example=3)  ,
      *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện (Sẽ được nén webp)"),
-     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ (Tối đa 20)")
+     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ (Tối đa 5)")
      *             )
      *         )
      *     ),
@@ -339,60 +331,53 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-            $validatedData = $request->validated();
+        $validatedData = $request->validated();
+
         $validatedData['slug'] = Str::slug($request->name) . '-' . time();
 
-        DB::beginTransaction();
-
-        try {
-            if ($request->hasFile('image')) {
-                $imagePath = $this->imageService->uploadAndProcess($request->file('image'), 'products');
-                if ($imagePath) {
-                    $validatedData['image_url'] = $imagePath;
-                }
-            }
-
-            $product = Product::create($validatedData);
-
-            // Tự động tạo biến thể mặc định (cho sản phẩm không có biến thể)
-            $product->variants()->create([
-                'sku' => $product->sku,
-                'price' => $product->sale_price ?? $product->base_price,
-                'stock_quantity' => $request->stock_quantity,
-                'is_available' => true,
+        if ($request->hasFile('image')) {
+            $uploaded = cloudinary()->upload($request->file('image')->getRealPath(), [
+                'folder' => 'products',
+                'transformation' => [
+                    'width' => 1000,
+                    'crop' => 'limit',
+                    'quality' => 'auto',
+                    'fetch_format' => 'webp'
+                ]
             ]);
-
-            if ($request->hasFile('gallery_images')) {
-                foreach ($request->file('gallery_images') as $index => $galleryImage) {
-                    $imagePath = $this->imageService->uploadAndProcess($galleryImage, 'products');
-                    
-                    if ($imagePath) {
-                        $product->images()->create([
-                            'image_url' => $imagePath,
-                            'is_primary' => false,
-                            'sort_order' => $index
-                        ]);
-                    }
-                }
-            }
-
-            DB::commit();
-
-            $product->load(['images', 'variants']);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Sản phẩm đã được tạo thành công!',
-                'product' => $product
-            ], 201);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Lỗi xử lý hệ thống/hình ảnh: ' . $e->getMessage()
-            ], 500);
+            $validatedData['image_url'] = $uploaded->getSecurePath();
         }
+
+        $product = Product::create($validatedData);
+
+        // Upload gallery images
+        if ($request->hasFile('gallery_images')) {
+            foreach ($request->file('gallery_images') as $index => $galleryImage) {
+                $uploaded = cloudinary()->upload($galleryImage->getRealPath(), [
+                    'folder' => 'products_gallery',
+                    'transformation' => [
+                        'width' => 1000,
+                        'crop' => 'limit',
+                        'quality' => 'auto',
+                        'fetch_format' => 'webp'
+                    ]
+                ]);
+                
+                $product->images()->create([
+                    'image_url' => $uploaded->getSecurePath(),
+                    'is_primary' => false,
+                    'sort_order' => $index
+                ]);
+            }
+        }
+
+        $product->load('images');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sản phẩm đã được tạo thành công!',
+            'product' => $product
+        ], 201);
     }
 
     /**
@@ -413,10 +398,8 @@ class ProductController extends Controller
      *                 @OA\Property(property="description", type="string"),
      *                 @OA\Property(property="base_price", type="number"),
      *                 @OA\Property(property="category_id", type="integer"),
-     *                 @OA\Property(property="stock_quantity", type="integer", example=50, description="Cập nhật số lượng tồn kho (nếu sản phẩm chỉ có 1 biến thể)"),
      *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện mới"),
-     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ mới (Tối đa 20)"),
-     *                 @OA\Property(property="delete_gallery_ids", type="string", example="[1,2,3]", description="Danh sách ID của các ảnh phụ muốn xóa (JSON string)")
+     *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ mới (Sẽ ghi đè ảnh cũ)")
      *             )
      *         )
      *     ),
@@ -440,95 +423,82 @@ class ProductController extends Controller
         }
 
         $validatedData = $request->validated();
-        
-        DB::beginTransaction();
 
-        try {
-            if ($request->hasFile('image')) {
-                // Delete old primary image correctly using service
-                $this->imageService->deleteImage($product->getRawOriginal('image_url'));
-                
-                $imagePath = $this->imageService->uploadAndProcess($request->file('image'), 'products');
-                if ($imagePath) {
-                    $validatedData['image_url'] = $imagePath;
-                }
-            }
-
-            $product->update($validatedData);
-
-            // Đồng bộ với biến thể mặc định nếu sản phẩm chỉ có <= 1 biến thể
-            $variantsCount = $product->variants()->count();
-            if ($variantsCount <= 1) {
-                $variantData = [
-                    'sku' => $product->sku,
-                    'price' => $product->sale_price ?? $product->base_price,
-                ];
-                
-                if ($request->has('stock_quantity')) {
-                    $variantData['stock_quantity'] = $request->stock_quantity;
-                }
-
-                if ($variantsCount == 0) {
-                    $variantData['is_available'] = true;
-                    $product->variants()->create($variantData);
+        if ($request->hasFile('image')) {
+            // Delete old primary image correctly using raw path
+            if ($oldUrl = $product->getRawOriginal('image_url')) {
+                if (\Illuminate\Support\Str::contains($oldUrl, 'res.cloudinary.com')) {
+                    $parts = explode('/upload/', $oldUrl);
+                    if (isset($parts[1])) {
+                        $path = preg_replace('/^v\d+\//', '', $parts[1]); 
+                        $publicId = pathinfo($path, PATHINFO_DIRNAME) . '/' . pathinfo($path, PATHINFO_FILENAME);
+                        if ($publicId && $publicId !== '.') {
+                            cloudinary()->destroy($publicId);
+                        }
+                    }
                 } else {
-                    $product->variants()->first()->update($variantData);
+                    Storage::disk('public')->delete($oldUrl);
                 }
             }
-
-            // Xoá các ảnh phụ bị chỉ định xoá
-            if ($request->has('delete_gallery_ids')) {
-                $deleteIds = $request->input('delete_gallery_ids');
-                
-                // Hỗ trợ cả JSON string (từ FormData) và Array (từ JSON request)
-                if (is_string($deleteIds)) {
-                    $deleteIds = json_decode($deleteIds, true);
-                }
-
-                if (is_array($deleteIds)) {
-                    $imagesToDelete = $product->images()->whereIn('id', $deleteIds)->get();
-                    foreach ($imagesToDelete as $oldImage) {
-                        $this->imageService->deleteImage($oldImage->getRawOriginal('image_url'));
-                        $oldImage->forceDelete();
-                    }
-                }
-            }
-
-            // Thêm các ảnh phụ mới
-            if ($request->hasFile('gallery_images')) {
-                // Lấy sort_order lớn nhất hiện tại để tiếp tục
-                $maxSortOrder = $product->images()->max('sort_order') ?? -1;
-
-                foreach ($request->file('gallery_images') as $index => $galleryImage) {
-                    $imagePath = $this->imageService->uploadAndProcess($galleryImage, 'products');
-                    
-                    if ($imagePath) {
-                        $product->images()->create([
-                            'image_url' => $imagePath,
-                            'is_primary' => false,
-                            'sort_order' => $maxSortOrder + $index + 1
-                        ]);
-                    }
-                }
-            }
-
-            DB::commit();
-
-            $product->load(['images', 'variants']);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Sản phẩm đã được cập nhật thành công!',
-                'product' => $product
+            
+            $uploaded = cloudinary()->upload($request->file('image')->getRealPath(), [
+                'folder' => 'products',
+                'transformation' => [
+                    'width' => 1000,
+                    'crop' => 'limit',
+                    'quality' => 'auto',
+                    'fetch_format' => 'webp'
+                ]
             ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Lỗi xử lý hệ thống/hình ảnh: ' . $e->getMessage()
-            ], 500);
+            $validatedData['image_url'] = $uploaded->getSecurePath();
         }
+
+        $product->update($validatedData);
+
+        if ($request->hasFile('gallery_images')) {
+            // Replace all existing gallery images
+            foreach ($product->images as $oldImage) {
+                if ($oldUrl = $oldImage->getRawOriginal('image_url')) {
+                    if (\Illuminate\Support\Str::contains($oldUrl, 'res.cloudinary.com')) {
+                        $parts = explode('/upload/', $oldUrl);
+                        if (isset($parts[1])) {
+                            $path = preg_replace('/^v\d+\//', '', $parts[1]); 
+                            $publicId = pathinfo($path, PATHINFO_DIRNAME) . '/' . pathinfo($path, PATHINFO_FILENAME);
+                            if ($publicId && $publicId !== '.') cloudinary()->destroy($publicId);
+                        }
+                    } else {
+                        Storage::disk('public')->delete($oldUrl);
+                    }
+                }
+                $oldImage->delete(); // Or permanent delete since the record logic uses soft delete maybe
+            }
+
+            foreach ($request->file('gallery_images') as $index => $galleryImage) {
+                $uploaded = cloudinary()->upload($galleryImage->getRealPath(), [
+                    'folder' => 'products_gallery',
+                    'transformation' => [
+                        'width' => 1000,
+                        'crop' => 'limit',
+                        'quality' => 'auto',
+                        'fetch_format' => 'webp'
+                    ]
+                ]);
+                
+                $product->images()->create([
+                    'image_url' => $uploaded->getSecurePath(),
+                    'is_primary' => false,
+                    'sort_order' => $index
+                ]);
+            }
+        }
+
+        $product->load('images');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sản phẩm đã được cập nhật thành công!',
+            'product' => $product
+        ]);
     }
 
     /**
@@ -557,34 +527,13 @@ class ProductController extends Controller
             return response()->json(['success' => false, 'message' => 'Sản phẩm không tồn tại'], 404);
         }
 
-        DB::beginTransaction();
+        // Soft delete - chỉ đánh dấu xóa, không xóa hẳn ra khỏi CSDL
+        $product->delete();
 
-        try {
-            // Xóa ảnh đại diện vật lý
-            $this->imageService->deleteImage($product->getRawOriginal('image_url'));
-
-            // Xóa tất cả ảnh gallery vật lý
-            foreach ($product->images as $galleryImage) {
-                $this->imageService->deleteImage($galleryImage->getRawOriginal('image_url'));
-                $galleryImage->forceDelete(); // Xóa hẳn record ảnh gallery
-            }
-
-            // Soft delete sản phẩm
-            $product->delete();
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Sản phẩm đã được xóa thành công!'
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Lỗi khi xóa sản phẩm: ' . $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Sản phẩm đã được xóa thành công!'
+        ]);
     }
 
     /**
@@ -734,68 +683,5 @@ class ProductController extends Controller
         }
 
         return response()->json($result);
-    }
-
-    /**
-     * @OA\Patch(
-     *     path="/products/{productId}/set-primary-image/{imageId}",
-     *     summary="Chọn một ảnh trong Gallery làm ảnh chính của sản phẩm",
-     *     tags={"Products"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="productId", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Parameter(name="imageId", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(
-     *         response=200, 
-     *         description="Cập nhật thành công",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Đã cập nhật ảnh đại diện mới thành công!")
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Sản phẩm hoặc hình ảnh không tồn tại"),
-     *     @OA\Response(response=500, description="Lỗi hệ thống")
-     * )
-     */
-    public function setPrimaryImage($productId, $imageId)
-    {
-        $product = Product::find($productId);
-        if (!$product) {
-            return response()->json(['success' => false, 'message' => 'Sản phẩm không tồn tại'], 404);
-        }
-
-        $image = ProductImage::where('id', $imageId)->where('product_id', $productId)->first();
-        if (!$image) {
-            return response()->json(['success' => false, 'message' => 'Hình ảnh không tồn tại hoặc không thuộc sản phẩm này'], 404);
-        }
-
-        DB::beginTransaction();
-        try {
-            // 1. Reset toàn bộ ảnh gallery của sản phẩm này về false
-            ProductImage::where('product_id', $productId)->update(['is_primary' => false]);
-
-            // 2. Chuyển ảnh được chọn thành primary
-            $image->update(['is_primary' => true]);
-
-            // 3. Đồng bộ hóa link ảnh vào bảng products
-            // Lưu ý: image_url trong product_images đã có accessor trả về full link 
-            // nhưng ta cần lưu đường dẫn tương đối (không có storage/) vào DB
-            // Giả sử logic lưu của bạn là lưu path tương đối.
-            $product->update(['image_url' => $image->getRawOriginal('image_url')]);
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Đã cập nhật ảnh đại diện mới thành công!',
-                'image_url' => $product->image_url
-            ], 200);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Lỗi hệ thống: ' . $e->getMessage()
-            ], 500);
-        }
     }
 }
