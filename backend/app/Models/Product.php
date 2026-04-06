@@ -41,10 +41,4 @@ class Product extends Model
         return $this->hasMany(\App\Models\ProductImage::class)->orderBy('sort_order', 'asc');
     }
 
-    public function getImageUrlAttribute($value)
-    {
-        if (!$value) return null;
-        if (str_starts_with($value, 'http')) return $value;
-        return asset('storage/' . $value);
-    }
 }

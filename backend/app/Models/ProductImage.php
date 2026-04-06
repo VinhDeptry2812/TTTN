@@ -34,8 +34,6 @@ class ProductImage extends Model
     
     public function getImageUrlAttribute($value)
     {
-        if (!$value) return null;
-        if (str_starts_with($value, 'http')) return $value;
-        return asset('storage/' . $value);
+        return $value ? asset('storage/' . $value) : null;
     }
 }
