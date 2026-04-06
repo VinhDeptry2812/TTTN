@@ -8,13 +8,13 @@ use App\Http\Controllers\UserAddressController;
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
-<<<<<<< Updated upstream
-=======
+
+
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\ProductStatsController;
->>>>>>> Stashed changes
+
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -108,8 +108,7 @@ Route::middleware('auth:admin-api')->group(function () {
         Route::get('/categories/{id}', [CategoryController::class, 'show']);
         Route::match(['POST', 'PUT'], '/categories/{id}', [CategoryController::class, 'update']);
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
-<<<<<<< Updated upstream
-=======
+
 
         // Quản lý Mã giảm giá (Coupons)
         Route::get('/admin/coupons', [CouponController::class, 'index']);
@@ -122,7 +121,7 @@ Route::middleware('auth:admin-api')->group(function () {
         // Thống kê sản phẩm (Product Stats)
         Route::get('/admin/products/stats/by-price', [ProductStatsController::class, 'byPrice']);
         Route::get('/admin/products/stats/by-brand', [ProductStatsController::class, 'byBrand']);
->>>>>>> Stashed changes
+
     });
 
     // --- Nhóm quyền: Nhân viên (Staff) ---
