@@ -7,11 +7,12 @@
     },
     "servers": [
         {
+<<<<<<< Updated upstream
+            "url": "/api"
+=======
             "url": "/api",
             "description": "API Server (Tự động nhận diện Host)"
-        },
-        {
-            "url": "/api"
+>>>>>>> Stashed changes
         }
     ],
     "paths": {
@@ -2804,6 +2805,8 @@
                 ]
             }
         },
+<<<<<<< Updated upstream
+=======
         "/products/generate-ai-description": {
             "post": {
                 "tags": [
@@ -3087,6 +3090,209 @@
                 ]
             }
         },
+        "/admin/products/stats/by-price": {
+            "get": {
+                "tags": [
+                    "Product Stats"
+                ],
+                "summary": "Thống kê sản phẩm theo khoảng giá",
+                "description": "Trả về thống kê số lượng sản phẩm, lượng bán và doanh thu của từng khoảng giá",
+                "operationId": "getProductStatsByPrice",
+                "parameters": [
+                    {
+                        "name": "days",
+                        "in": "query",
+                        "description": "Số ngày thống kê từ ngày hiện tại trở lại (mặc định: 30)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 30,
+                            "maximum": 365,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "period_days": {
+                                                    "type": "integer",
+                                                    "example": 30
+                                                },
+                                                "price_ranges": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "range": {
+                                                                "type": "string",
+                                                                "example": "0 - 1,000,000"
+                                                            },
+                                                            "min_price": {
+                                                                "type": "number"
+                                                            },
+                                                            "max_price": {
+                                                                "type": "number"
+                                                            },
+                                                            "product_count": {
+                                                                "type": "integer"
+                                                            },
+                                                            "total_quantity_sold": {
+                                                                "type": "integer"
+                                                            },
+                                                            "total_revenue": {
+                                                                "type": "number"
+                                                            },
+                                                            "average_selling_price": {
+                                                                "type": "number"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/products/stats/by-brand": {
+            "get": {
+                "tags": [
+                    "Product Stats"
+                ],
+                "summary": "Thống kê sản phẩm theo brand",
+                "description": "Trả về thống kê số lượng sản phẩm, lượng bán, doanh thu và lượt xem của từng brand",
+                "operationId": "getProductStatsByBrand",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Số lượng brand trả về (mặc định: 20)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "days",
+                        "in": "query",
+                        "description": "Số ngày thống kê từ ngày hiện tại trở lại (mặc định: 30)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 30,
+                            "maximum": 365,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sắp xếp theo: quantity (số lượng bán), revenue (doanh thu), views (lượt xem)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "revenue",
+                            "enum": [
+                                "quantity",
+                                "revenue",
+                                "views"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "period_days": {
+                                                    "type": "integer",
+                                                    "example": 30
+                                                },
+                                                "sort_by": {
+                                                    "type": "string",
+                                                    "example": "revenue"
+                                                },
+                                                "brands": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "brand": {
+                                                                "type": "string"
+                                                            },
+                                                            "product_count": {
+                                                                "type": "integer"
+                                                            },
+                                                            "total_views": {
+                                                                "type": "integer"
+                                                            },
+                                                            "total_quantity_sold": {
+                                                                "type": "integer"
+                                                            },
+                                                            "total_revenue": {
+                                                                "type": "number"
+                                                            },
+                                                            "average_price": {
+                                                                "type": "number"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Lỗi validation"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+>>>>>>> Stashed changes
         "/products/{productId}/variants": {
             "get": {
                 "tags": [
@@ -4833,6 +5039,10 @@
         {
             "name": "Products",
             "description": "Products"
+        },
+        {
+            "name": "Product Stats",
+            "description": "Product Stats"
         },
         {
             "name": "Product Variants",
