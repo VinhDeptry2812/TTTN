@@ -351,6 +351,15 @@ class ProductController extends Controller
 
         $product = Product::create($validatedData);
 
+        // Tự động tạo variant default
+        $product->variants()->create([
+            'sku'            => $validatedData['sku'] . '-DEFAULT',
+            'price'          => $validatedData['base_price'],
+            'stock_quantity' => $validatedData['stock_quantity'] ?? 0,
+            'image_url'      => $validatedData['image_url'] ?? null,
+            'is_available'   => true,
+        ]);
+
         // Upload gallery images
         if ($request->hasFile('gallery_images')) {
             foreach ($request->file('gallery_images') as $index => $galleryImage) {
@@ -372,7 +381,7 @@ class ProductController extends Controller
             }
         }
 
-        $product->load('images');
+        $product->load('images', 'variants');
 
         return response()->json([
             'success' => true,
