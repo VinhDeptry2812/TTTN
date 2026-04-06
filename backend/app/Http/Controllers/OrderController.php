@@ -173,4 +173,202 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * @OA\Get(
+     *     path="/orders",
+     *     summary="Danh sách đơn hàng của người dùng hiện tại",
+     *     tags={"Orders"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Thành công")
+     * )
+     */
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        $orders = Order::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate($request->get('limit', 10));
+
+        return response()->json([
+            'success' => true,
+            'data' => $orders
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/orders/{id}",
+     *     summary="Chi tiết đơn hàng",
+     *     tags={"Orders"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Thành công"),
+     *     @OA\Response(response=404, description="Không tìm thấy đơn hàng")
+     * )
+     */
+    public function show($id)
+    {
+        $user = auth()->user();
+        $order = Order::with(['items', 'coupon'])
+            ->where('user_id', $user->id)
+            ->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $order
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/orders/{id}/cancel",
+     *     summary="Hủy đơn hàng",
+     *     description="Chỉ được hủy khi trạng thái là pending",
+     *     tags={"Orders"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Hủy thành công"),
+     *     @OA\Response(response=422, description="Không thể hủy đơn hàng ở trạng thái hiện tại")
+     * )
+     */
+    public function cancel($id)
+    {
+        $user = auth()->user();
+        $order = Order::where('user_id', $user->id)->findOrFail($id);
+
+        if ($order->order_status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn chỉ có thể hủy đơn hàng khi trạng thái đang chờ xử lý (pending).'
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $order->update(['order_status' => 'cancelled']);
+
+            // Hoàn lại kho
+            foreach ($order->items as $item) {
+                if ($item->variant) {
+                    $item->variant->increment('stock_quantity', $item->quantity);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đơn hàng đã được hủy thành công và hoàn lại số lượng kho.'
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/admin/orders",
+     *     summary="[Admin] Danh sách toàn bộ đơn hàng",
+     *     tags={"Admin Orders"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="status", in="query", @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="Thành công")
+     * )
+     */
+    public function adminIndex(Request $request)
+    {
+        $query = Order::with('user')->orderBy('created_at', 'desc');
+
+        if ($request->has('status')) {
+            $query->where('order_status', $request->status);
+        }
+
+        $orders = $query->paginate($request->get('limit', 15));
+
+        return response()->json([
+            'success' => true,
+            'data' => $orders
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/admin/orders/{id}",
+     *     summary="[Admin] Chi tiết đơn hàng",
+     *     tags={"Admin Orders"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Thành công")
+     * )
+     */
+    public function adminShow($id)
+    {
+        $order = Order::with(['items', 'user', 'coupon'])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $order
+        ]);
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/admin/orders/{id}/status",
+     *     summary="[Admin] Cập nhật trạng thái đơn hàng",
+     *     tags={"Admin Orders"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="order_status", type="string", enum={"pending", "confirmed", "processing", "shipped", "delivered", "cancelled", "returned"}),
+     *             @OA\Property(property="payment_status", type="string", enum={"pending", "paid", "failed"})
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Cập nhật thành công")
+     * )
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'order_status' => 'nullable|in:pending,confirmed,processing,shipped,delivered,cancelled,returned',
+            'payment_status' => 'nullable|in:pending,paid,failed',
+        ]);
+
+        $order = Order::findOrFail($id);
+        $oldStatus = $order->order_status;
+
+        $updateData = [];
+        if ($request->has('order_status')) $updateData['order_status'] = $request->order_status;
+        if ($request->has('payment_status')) $updateData['payment_status'] = $request->payment_status;
+
+        try {
+            DB::beginTransaction();
+
+            $order->update($updateData);
+
+            // Nếu Admin chuyển sang trạng thái cancelled, hoàn kho nếu chưa hoàn
+            if ($request->order_status === 'cancelled' && $oldStatus !== 'cancelled') {
+                foreach ($order->items as $item) {
+                    if ($item->variant) {
+                        $item->variant->increment('stock_quantity', $item->quantity);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật trạng thái đơn hàng thành công.',
+                'order' => $order
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
+        }
+    }
 }

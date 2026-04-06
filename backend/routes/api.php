@@ -60,6 +60,9 @@ Route::middleware('auth:api')->group(function () {
 
     // Đặt hàng
     Route::post('/checkout', [OrderController::class, 'checkout']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 });
 
 // Public route cho Admin
@@ -112,8 +115,10 @@ Route::middleware('auth:admin-api')->group(function () {
 
     // --- Nhóm quyền: Nhân viên (Staff) ---
     Route::middleware('role.admin:superadmin,admin,staff')->group(function () {
-        // Staff có thể xem Dashboard và có thể được cấp quyền xem sản phẩm (nếu cần)
-        // Hiện tại các route GET sản phẩm đã để Public ở trên đầu file api.php rồi
+        // Quản lý đơn hàng cho Admin/Staff
+        Route::get('/admin/orders', [OrderController::class, 'adminIndex']);
+        Route::get('/admin/orders/{id}', [OrderController::class, 'adminShow']);
+        Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
     });
 
     // Các route khác nếu có...
