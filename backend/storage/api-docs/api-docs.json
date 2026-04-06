@@ -7,7 +7,12 @@
     },
     "servers": [
         {
+<<<<<<< Updated upstream
             "url": "/api"
+=======
+            "url": "/api",
+            "description": "API Server (Tự động nhận diện Host)"
+>>>>>>> Stashed changes
         }
     ],
     "paths": {
@@ -1657,6 +1662,494 @@
                 ]
             }
         },
+<<<<<<< Updated upstream
+=======
+        "/products/generate-ai-description": {
+            "post": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Tạo mô tả sản phẩm bằng AI (Yêu cầu: superadmin, admin)",
+                "description": "Sử dụng OpenAI để tạo một đoạn mô tả sản phẩm hấp dẫn dựa trên tên, danh mục và chất liệu.",
+                "operationId": "5d95afd42a954a12bf6dac0ba9256d8c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Ghế Sofa Da Ý Luxury"
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "example": "Sofa"
+                                    },
+                                    "material": {
+                                        "type": "string",
+                                        "example": "Da bò thật, khung gỗ sồi"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tạo mô tả thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "description": {
+                                            "type": "string",
+                                            "example": "Trải nghiệm sự sang trọng tột bậc với Ghế Sofa Da Ý Luxury..."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Lỗi validation dữ liệu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lỗi validation dữ liệu"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi kết nối API AI",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không thể tạo mô tả lúc này"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/products/detect-ai": {
+            "post": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Nhận diện sản phẩm từ hình ảnh sử dụng Gemini Vision",
+                "operationId": "15b261242e2d6aa4802d6d1188074da8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "image": {
+                                        "description": "File hình ảnh sản phẩm (jpg, png...)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kết quả nhận diện thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "is_furniture": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "name": {
+                                            "description": "Tên mẫu sản phẩm",
+                                            "type": "string",
+                                            "example": "Sofa Ý Luxury"
+                                        },
+                                        "category": {
+                                            "description": "Danh mục",
+                                            "type": "string",
+                                            "example": "Sofa"
+                                        },
+                                        "style": {
+                                            "description": "Phong cách",
+                                            "type": "string",
+                                            "example": "Hiện đại"
+                                        },
+                                        "description_raw": {
+                                            "description": "Mô tả AI tự tạo",
+                                            "type": "string"
+                                        },
+                                        "material": {
+                                            "description": "Chất liệu",
+                                            "type": "string",
+                                            "example": "Da bò thật"
+                                        },
+                                        "color": {
+                                            "description": "Màu sắc",
+                                            "type": "string",
+                                            "example": "Nâu"
+                                        },
+                                        "weight_kg": {
+                                            "description": "Trọng lượng (kg)",
+                                            "type": "number",
+                                            "example": 45.5
+                                        },
+                                        "finish": {
+                                            "description": "Màu hoàn thiện",
+                                            "type": "string",
+                                            "example": "Matte"
+                                        },
+                                        "size": {
+                                            "description": "Kích thước tổng quát",
+                                            "type": "string",
+                                            "example": "Lớn"
+                                        },
+                                        "width_cm": {
+                                            "description": "Chiều rộng (cm)",
+                                            "type": "number",
+                                            "example": 200
+                                        },
+                                        "depth_cm": {
+                                            "description": "Chiều sâu (cm)",
+                                            "type": "number",
+                                            "example": 90
+                                        },
+                                        "height_cm": {
+                                            "description": "Chiều cao (cm)",
+                                            "type": "number",
+                                            "example": 85
+                                        },
+                                        "seat_height_cm": {
+                                            "description": "Chiều cao mặt ghế (cm)",
+                                            "type": "number",
+                                            "example": 45
+                                        },
+                                        "price": {
+                                            "description": "Giá dự kiến (VND)",
+                                            "type": "number",
+                                            "example": 15000000
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu không hợp lệ"
+                    },
+                    "500": {
+                        "description": "Lỗi hệ thống hoặc API"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/products/{productId}/set-primary-image/{imageId}": {
+            "patch": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Chọn một ảnh trong Gallery làm ảnh chính của sản phẩm",
+                "operationId": "8c54d72193bd39908b7d883c35d23864",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "imageId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đã cập nhật ảnh đại diện mới thành công!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Sản phẩm hoặc hình ảnh không tồn tại"
+                    },
+                    "500": {
+                        "description": "Lỗi hệ thống"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/products/stats/by-price": {
+            "get": {
+                "tags": [
+                    "Product Stats"
+                ],
+                "summary": "Thống kê sản phẩm theo khoảng giá",
+                "description": "Trả về thống kê số lượng sản phẩm, lượng bán và doanh thu của từng khoảng giá",
+                "operationId": "getProductStatsByPrice",
+                "parameters": [
+                    {
+                        "name": "days",
+                        "in": "query",
+                        "description": "Số ngày thống kê từ ngày hiện tại trở lại (mặc định: 30)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 30,
+                            "maximum": 365,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "period_days": {
+                                                    "type": "integer",
+                                                    "example": 30
+                                                },
+                                                "price_ranges": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "range": {
+                                                                "type": "string",
+                                                                "example": "0 - 1,000,000"
+                                                            },
+                                                            "min_price": {
+                                                                "type": "number"
+                                                            },
+                                                            "max_price": {
+                                                                "type": "number"
+                                                            },
+                                                            "product_count": {
+                                                                "type": "integer"
+                                                            },
+                                                            "total_quantity_sold": {
+                                                                "type": "integer"
+                                                            },
+                                                            "total_revenue": {
+                                                                "type": "number"
+                                                            },
+                                                            "average_selling_price": {
+                                                                "type": "number"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/products/stats/by-brand": {
+            "get": {
+                "tags": [
+                    "Product Stats"
+                ],
+                "summary": "Thống kê sản phẩm theo brand",
+                "description": "Trả về thống kê số lượng sản phẩm, lượng bán, doanh thu và lượt xem của từng brand",
+                "operationId": "getProductStatsByBrand",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Số lượng brand trả về (mặc định: 20)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "days",
+                        "in": "query",
+                        "description": "Số ngày thống kê từ ngày hiện tại trở lại (mặc định: 30)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 30,
+                            "maximum": 365,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sắp xếp theo: quantity (số lượng bán), revenue (doanh thu), views (lượt xem)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "revenue",
+                            "enum": [
+                                "quantity",
+                                "revenue",
+                                "views"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "period_days": {
+                                                    "type": "integer",
+                                                    "example": 30
+                                                },
+                                                "sort_by": {
+                                                    "type": "string",
+                                                    "example": "revenue"
+                                                },
+                                                "brands": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "brand": {
+                                                                "type": "string"
+                                                            },
+                                                            "product_count": {
+                                                                "type": "integer"
+                                                            },
+                                                            "total_views": {
+                                                                "type": "integer"
+                                                            },
+                                                            "total_quantity_sold": {
+                                                                "type": "integer"
+                                                            },
+                                                            "total_revenue": {
+                                                                "type": "number"
+                                                            },
+                                                            "average_price": {
+                                                                "type": "number"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Lỗi validation"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+>>>>>>> Stashed changes
         "/products/{productId}/variants": {
             "get": {
                 "tags": [
@@ -2817,6 +3310,10 @@
         {
             "name": "Products",
             "description": "Products"
+        },
+        {
+            "name": "Product Stats",
+            "description": "Product Stats"
         },
         {
             "name": "Product Variants",
