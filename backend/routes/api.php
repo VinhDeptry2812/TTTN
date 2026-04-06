@@ -8,9 +8,13 @@ use App\Http\Controllers\UserAddressController;
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
+
+
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\ProductStatsController;
+
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -59,6 +63,9 @@ Route::middleware('auth:api')->group(function () {
 
     // Đặt hàng
     Route::post('/checkout', [OrderController::class, 'checkout']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 });
 
 // Public route cho Admin
@@ -105,6 +112,7 @@ Route::middleware('auth:admin-api')->group(function () {
         Route::match(['POST', 'PUT'], '/categories/{id}', [CategoryController::class, 'update']);
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 
+
         // Quản lý Mã giảm giá (Coupons)
         Route::get('/admin/coupons', [CouponController::class, 'index']);
         // Route::post('/admin/coupons', [CouponController::class, 'store']); // Sẽ được merge vào nhóm admin bên dưới
@@ -112,12 +120,19 @@ Route::middleware('auth:admin-api')->group(function () {
         Route::get('/admin/coupons/{coupon}', [CouponController::class, 'show']);
         Route::put('/admin/coupons/{coupon}', [CouponController::class, 'update']);
         Route::delete('/admin/coupons/{coupon}', [CouponController::class, 'destroy']);
+
+        // Thống kê sản phẩm (Product Stats)
+        Route::get('/admin/products/stats/by-price', [ProductStatsController::class, 'byPrice']);
+        Route::get('/admin/products/stats/by-brand', [ProductStatsController::class, 'byBrand']);
+
     });
 
     // --- Nhóm quyền: Nhân viên (Staff) ---
     Route::middleware('role.admin:superadmin,admin,staff')->group(function () {
-        // Staff có thể xem Dashboard và có thể được cấp quyền xem sản phẩm (nếu cần)
-        // Hiện tại các route GET sản phẩm đã để Public ở trên đầu file api.php rồi
+        // Quản lý đơn hàng cho Admin/Staff
+        Route::get('/admin/orders', [OrderController::class, 'adminIndex']);
+        Route::get('/admin/orders/{id}', [OrderController::class, 'adminShow']);
+        Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
     });
 
     // Các route khác nếu có...
