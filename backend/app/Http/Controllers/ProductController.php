@@ -203,7 +203,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::select([
-            'id', 'category_id', 'name', 'slug', 'sku', 'base_price',
+            'id', 'category_id', 'name', 'slug', 'sku', 'base_price', 'stock_quantity',
             'sale_price', 'image_url', 'is_active', 'is_featured', 'created_at'
         ])->with(['category:id,name,slug']);
 
@@ -311,6 +311,7 @@ class ProductController extends Controller
      *                 @OA\Property(property="sale_price", type="number", nullable=true),
      *                 @OA\Property(property="sku", type="string", example="SKU12345"),
      *                 @OA\Property(property="category_id", type="integer", example=3)  ,
+     *                 @OA\Property(property="stock_quantity", type="integer", example=10),
      *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện (Sẽ được nén webp)"),
      *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ (Tối đa 5)")
      *             )
@@ -398,6 +399,7 @@ class ProductController extends Controller
      *                 @OA\Property(property="description", type="string"),
      *                 @OA\Property(property="base_price", type="number"),
      *                 @OA\Property(property="category_id", type="integer"),
+     *                 @OA\Property(property="stock_quantity", type="integer"),
      *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện mới"),
      *                 @OA\Property(property="gallery_images[]", type="array", @OA\Items(type="string", format="binary"), description="Danh sách ảnh phụ mới (Sẽ ghi đè ảnh cũ)")
      *             )

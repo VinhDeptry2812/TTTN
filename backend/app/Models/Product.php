@@ -23,6 +23,7 @@ class Product extends Model
         'is_featured',
         'is_active',
         'view_count',
+        'stock_quantity',
     ];
 
     public function category()
