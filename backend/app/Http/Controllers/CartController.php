@@ -26,7 +26,18 @@ class CartController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Lấy thông tin thành công"
+     *         description="Lấy thông tin thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data", 
+     *                 type="object",
+     *                 @OA\Property(property="cart_id", type="integer"),
+     *                 @OA\Property(property="items", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="total_quantity", type="integer"),
+     *                 @OA\Property(property="total_price", type="number")
+     *             )
+     *         )
      *     )
      * )
      */
@@ -89,7 +100,15 @@ class CartController extends Controller
      *             @OA\Property(property="quantity", type="integer", example=1)
      *         )
      *     ),
-     *     @OA\Response(response=201, description="Thêm sản phẩm thành công"),
+     *     @OA\Response(
+     *         response=201, 
+     *         description="Thêm sản phẩm thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Đã thêm sản phẩm vào giỏ hàng."),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
      *     @OA\Response(response=400, description="Dữ liệu không hợp lệ / Hết hàng"),
      *     @OA\Response(response=500, description="Lỗi server")
      * )
@@ -196,7 +215,15 @@ class CartController extends Controller
      *             @OA\Property(property="quantity", type="integer", example=2)
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Cập nhật thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Cập nhật số lượng thành công."),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
      *     @OA\Response(response=400, description="Không đủ số lượng tồn kho"),
      *     @OA\Response(response=404, description="Không tìm thấy giỏ hàng hoặc sản phẩm")
      * )
@@ -257,7 +284,14 @@ class CartController extends Controller
      *         required=false,
      *         @OA\Schema(type="string")
      *     ),
-     *     @OA\Response(response=200, description="Xóa thành công"),
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Xóa thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Đã xóa sản phẩm khỏi giỏ hàng.")
+     *         )
+     *     ),
      *     @OA\Response(response=404, description="Không tìm thấy giỏ hàng hoặc sản phẩm")
      * )
      */
@@ -294,7 +328,14 @@ class CartController extends Controller
      *         required=false,
      *         @OA\Schema(type="string")
      *     ),
-     *     @OA\Response(response=200, description="Xóa thành công")
+     *     @OA\Response(
+     *         response=200, 
+     *         description="Xóa thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Đã xóa tất cả sản phẩm trong giỏ hàng.")
+     *         )
+     *     )
      * )
      */
     public function clear(Request $request)

@@ -2,25 +2,27 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
     protected $fillable = [
         'category_id',
         'name',
         'slug',
         'sku',
         'description',
-        'material',
         'brand',
+        'material',
         'base_price',
         'sale_price',
         'image_url',
-        'is_active',
         'is_featured',
+        'is_active',
+        'view_count',
     ];
 
     public function category()
@@ -31,5 +33,15 @@ class Product extends Model
     public function variants()
     {
         return $this->hasMany(\App\Models\ProductVariant::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(\App\Models\ProductImage::class)->orderBy('sort_order', 'asc');
+    }
+
+    public function getImageUrlAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null;
     }
 }

@@ -8,10 +8,13 @@ use App\Http\Controllers\UserAddressController;
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
+
+
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\FaceBookAuthController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\ProductStatsController;
+
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -88,10 +91,15 @@ Route::middleware('auth:admin-api')->group(function () {
 
     // --- Nhóm quyền: Superadmin & Admin ---
     Route::middleware('role.admin:superadmin,admin')->group(function () {
+        // Generate AI Description
+        Route::post('/products/generate-ai-description', [ProductController::class, 'generateAIDescription']);
+        Route::post('/products/detect-ai', [ProductController::class, 'detectAI']);
+
         // Quản lý Sản phẩm
         Route::post('/products/create', [ProductController::class, 'store']);
         Route::match(['POST', 'PUT'], '/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+        Route::patch('/products/{productId}/set-primary-image/{imageId}', [ProductController::class, 'setPrimaryImage']);
 
         // Product Variants
         Route::post('/products/{productId}/variants', [ProductVariantController::class, 'store']);
@@ -104,6 +112,7 @@ Route::middleware('auth:admin-api')->group(function () {
         Route::match(['POST', 'PUT'], '/categories/{id}', [CategoryController::class, 'update']);
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 
+
         // Quản lý Mã giảm giá (Coupons)
         Route::get('/admin/coupons', [CouponController::class, 'index']);
         // Route::post('/admin/coupons', [CouponController::class, 'store']); // Sẽ được merge vào nhóm admin bên dưới
@@ -111,6 +120,11 @@ Route::middleware('auth:admin-api')->group(function () {
         Route::get('/admin/coupons/{coupon}', [CouponController::class, 'show']);
         Route::put('/admin/coupons/{coupon}', [CouponController::class, 'update']);
         Route::delete('/admin/coupons/{coupon}', [CouponController::class, 'destroy']);
+
+        // Thống kê sản phẩm (Product Stats)
+        Route::get('/admin/products/stats/by-price', [ProductStatsController::class, 'byPrice']);
+        Route::get('/admin/products/stats/by-brand', [ProductStatsController::class, 'byBrand']);
+
     });
 
     // --- Nhóm quyền: Nhân viên (Staff) ---
@@ -139,8 +153,7 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
 // Link này là callback từ Google trả về
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
-Route::get('/auth/facebook', [FaceBookAuthController::class, 'redirectToFacebook']);
-Route::get('/auth/facebook/callback', [FaceBookAuthController::class, 'handleFacebookCallback']);
+
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 

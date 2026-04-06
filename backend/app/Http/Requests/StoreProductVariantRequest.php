@@ -31,6 +31,8 @@ class StoreProductVariantRequest extends FormRequest
             'weight_kg' => 'nullable|numeric|min:0',
             'seat_height_cm' => 'nullable|string|max:20',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'gallery_images' => 'nullable|array',
+            'gallery_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'is_available' => 'nullable|boolean',
         ];
     }
