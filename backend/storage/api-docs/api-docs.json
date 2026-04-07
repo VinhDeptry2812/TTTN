@@ -8,9 +8,9 @@
     "servers": [
         {
 
-
-            "description": "API Server (Tự động nhận diện Host)"
-
+            "url": "http://127.0.0.1:8000/api",
+            "description": "API Server (TTTN Local)"
+    
         }
     ],
     "paths": {
@@ -3222,7 +3222,6 @@
                 ]
             }
         },
-
         "/products/{productId}/variants": {
             "get": {
                 "tags": [
