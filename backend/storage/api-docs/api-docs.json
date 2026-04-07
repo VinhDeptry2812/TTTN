@@ -7,12 +7,10 @@
     },
     "servers": [
         {
-<<<<<<< Updated upstream
-            "url": "/api"
-=======
-            "url": "/api",
+
+
             "description": "API Server (Tự động nhận diện Host)"
->>>>>>> Stashed changes
+
         }
     ],
     "paths": {
@@ -2588,9 +2586,7 @@
                                         "type": "integer"
                                     },
                                     "stock_quantity": {
-                                        "description": "Cập nhật số lượng tồn kho (nếu sản phẩm chỉ có 1 biến thể)",
-                                        "type": "integer",
-                                        "example": 50
+                                        "type": "integer"
                                     },
                                     "image": {
                                         "description": "Ảnh đại diện mới",
@@ -2598,17 +2594,12 @@
                                         "format": "binary"
                                     },
                                     "gallery_images[]": {
-                                        "description": "Danh sách ảnh phụ mới (Tối đa 20)",
+                                        "description": "Danh sách ảnh phụ mới (Sẽ ghi đè ảnh cũ)",
                                         "type": "array",
                                         "items": {
                                             "type": "string",
                                             "format": "binary"
                                         }
-                                    },
-                                    "delete_gallery_ids": {
-                                        "description": "Danh sách ID của các ảnh phụ muốn xóa (JSON string)",
-                                        "type": "string",
-                                        "example": "[1,2,3]"
                                     }
                                 },
                                 "type": "object"
@@ -2744,9 +2735,8 @@
                                         "example": 3
                                     },
                                     "stock_quantity": {
-                                        "description": "Số lượng tồn kho ban đầu cho biến thể mặc định",
                                         "type": "integer",
-                                        "example": 100
+                                        "example": 10
                                     },
                                     "image": {
                                         "description": "Ảnh đại diện (Sẽ được nén webp)",
@@ -2754,7 +2744,7 @@
                                         "format": "binary"
                                     },
                                     "gallery_images[]": {
-                                        "description": "Danh sách ảnh phụ (Tối đa 20)",
+                                        "description": "Danh sách ảnh phụ (Tối đa 5)",
                                         "type": "array",
                                         "items": {
                                             "type": "string",
@@ -2805,8 +2795,8 @@
                 ]
             }
         },
-<<<<<<< Updated upstream
-=======
+
+
         "/products/generate-ai-description": {
             "post": {
                 "tags": [
@@ -3030,66 +3020,6 @@
                 ]
             }
         },
-        "/products/{productId}/set-primary-image/{imageId}": {
-            "patch": {
-                "tags": [
-                    "Products"
-                ],
-                "summary": "Chọn một ảnh trong Gallery làm ảnh chính của sản phẩm",
-                "operationId": "8c54d72193bd39908b7d883c35d23864",
-                "parameters": [
-                    {
-                        "name": "productId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "imageId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Cập nhật thành công",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Đã cập nhật ảnh đại diện mới thành công!"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Sản phẩm hoặc hình ảnh không tồn tại"
-                    },
-                    "500": {
-                        "description": "Lỗi hệ thống"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
         "/admin/products/stats/by-price": {
             "get": {
                 "tags": [
@@ -3292,7 +3222,7 @@
                 ]
             }
         },
->>>>>>> Stashed changes
+
         "/products/{productId}/variants": {
             "get": {
                 "tags": [
@@ -3428,14 +3358,6 @@
                                         "description": "Ảnh riêng của biến thể",
                                         "type": "string",
                                         "format": "binary"
-                                    },
-                                    "gallery_images[]": {
-                                        "description": "Ảnh gallery cho biến thể",
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string",
-                                            "format": "binary"
-                                        }
                                     }
                                 },
                                 "type": "object"
@@ -3535,22 +3457,9 @@
                                         "example": 1
                                     },
                                     "image": {
-                                        "description": "[TÙY CHỌN] Ảnh đại diện mới",
+                                        "description": "[TÙY CHỌN] Ảnh mới",
                                         "type": "string",
                                         "format": "binary"
-                                    },
-                                    "gallery_images[]": {
-                                        "description": "[TÙY CHỌN] Thêm ảnh gallery mới",
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string",
-                                            "format": "binary"
-                                        }
-                                    },
-                                    "delete_gallery_ids": {
-                                        "description": "[TÙY CHỌN] JSON array IDs của ảnh gallery cần xóa",
-                                        "type": "string",
-                                        "example": "[1,2,3]"
                                     }
                                 },
                                 "type": "object"
@@ -3642,6 +3551,164 @@
                     },
                     "404": {
                         "description": "Biến thể không tồn tại"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/revenue/stats": {
+            "get": {
+                "tags": [
+                    "Revenue Stats"
+                ],
+                "summary": "Thống kê doanh thu - 4 mode linh hoạt",
+                "description": "Thống kê doanh thu từ đơn hàng đã thanh toán (payment_status=paid).\r\n     *     \r\n     *     **Mode 1 - Theo ngày (DAY mode):**\r\n     *     - GET /admin/revenue/stats?period=day&date=2026-04-07\r\n     *     - Trả về doanh thu trong ngày, group by giờ\r\n     *     \r\n     *     **Mode 2 - Theo tháng (MONTH mode):**\r\n     *     - GET /admin/revenue/stats?period=month&year=2026&month=4\r\n     *     - Trả về doanh thu trong tháng 4/2026, group by ngày\r\n     *     \r\n     *     **Mode 3 - Theo quý (QUARTER mode):**\r\n     *     - GET /admin/revenue/stats?period=quarter&year=2026&quarter=2\r\n     *     - Trả về doanh thu trong quý 2/2026, group by tháng\r\n     *     \r\n     *     **Mode 4 - Theo năm (YEAR mode):**\r\n     *     - GET /admin/revenue/stats?period=year&year=2026\r\n     *     - Trả về doanh thu trong năm 2026, group by quý",
+                "operationId": "getRevenueStats",
+                "parameters": [
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "description": "Kỳ thống kê: day | month | quarter | year",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "day",
+                                "month",
+                                "quarter",
+                                "year"
+                            ],
+                            "example": "month"
+                        }
+                    },
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "description": "Bắt buộc khi period=day. Định dạng Y-m-d",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2026-04-07"
+                        }
+                    },
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "description": "Bắt buộc khi period=month|quarter|year. Năm cần thống kê",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 2026
+                        }
+                    },
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "description": "Bắt buộc khi period=month. Tháng từ 1-12",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 12,
+                            "minimum": 1,
+                            "example": 4
+                        }
+                    },
+                    {
+                        "name": "quarter",
+                        "in": "query",
+                        "description": "Bắt buộc khi period=quarter. Quý từ 1-4",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "enum": [
+                                1,
+                                2,
+                                3,
+                                4
+                            ],
+                            "example": 2
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "period": {
+                                            "type": "string",
+                                            "example": "month"
+                                        },
+                                        "period_label": {
+                                            "type": "string",
+                                            "example": "Tháng 4/2026"
+                                        },
+                                        "total_revenue": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 250000000
+                                        },
+                                        "total_orders": {
+                                            "type": "integer",
+                                            "example": 450
+                                        },
+                                        "average_order_value": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 555555.56
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "date": {
+                                                        "type": "string",
+                                                        "example": "2026-04-01"
+                                                    },
+                                                    "label": {
+                                                        "type": "string",
+                                                        "example": "01/04/2026"
+                                                    },
+                                                    "revenue": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 5000000
+                                                    },
+                                                    "order_count": {
+                                                        "type": "integer",
+                                                        "example": 15
+                                                    },
+                                                    "average_order_value": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 333333.33
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu validation không hợp lệ"
+                    },
+                    "401": {
+                        "description": "Chưa xác thực"
                     }
                 },
                 "security": [
@@ -5047,6 +5114,10 @@
         {
             "name": "Product Variants",
             "description": "Product Variants"
+        },
+        {
+            "name": "Revenue Stats",
+            "description": "Revenue Stats"
         },
         {
             "name": "User Addresses",
