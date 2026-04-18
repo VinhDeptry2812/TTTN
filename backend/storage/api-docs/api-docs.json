@@ -2155,9 +2155,7 @@
                                         "type": "integer"
                                     },
                                     "stock_quantity": {
-                                        "description": "Cập nhật số lượng tồn kho (nếu sản phẩm chỉ có 1 biến thể)",
-                                        "type": "integer",
-                                        "example": 50
+                                        "type": "integer"
                                     },
                                     "image": {
                                         "description": "Ảnh đại diện mới",
@@ -2165,17 +2163,12 @@
                                         "format": "binary"
                                     },
                                     "gallery_images[]": {
-                                        "description": "Danh sách ảnh phụ mới (Tối đa 20)",
+                                        "description": "Danh sách ảnh phụ mới (Sẽ ghi đè ảnh cũ)",
                                         "type": "array",
                                         "items": {
                                             "type": "string",
                                             "format": "binary"
                                         }
-                                    },
-                                    "delete_gallery_ids": {
-                                        "description": "Danh sách ID của các ảnh phụ muốn xóa (JSON string)",
-                                        "type": "string",
-                                        "example": "[1,2,3]"
                                     }
                                 },
                                 "type": "object"
@@ -2271,7 +2264,7 @@
                                     },
                                     "stock_quantity": {
                                         "type": "integer",
-                                        "example": 100
+                                        "example": 10
                                     },
                                     "image": {
                                         "description": "Ảnh đại diện (Sẽ được nén webp)",
@@ -2279,7 +2272,7 @@
                                         "format": "binary"
                                     },
                                     "gallery_images[]": {
-                                        "description": "Danh sách ảnh phụ (Tối đa 20)",
+                                        "description": "Danh sách ảnh phụ (Tối đa 5)",
                                         "type": "array",
                                         "items": {
                                             "type": "string",
@@ -2524,66 +2517,6 @@
                     },
                     "500": {
                         "description": "Lỗi hệ thống hoặc API"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/products/{productId}/set-primary-image/{imageId}": {
-            "patch": {
-                "tags": [
-                    "Products"
-                ],
-                "summary": "Chọn một ảnh trong Gallery làm ảnh chính của sản phẩm",
-                "operationId": "8c54d72193bd39908b7d883c35d23864",
-                "parameters": [
-                    {
-                        "name": "productId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "imageId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Cập nhật thành công",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Đã cập nhật ảnh đại diện mới thành công!"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Sản phẩm hoặc hình ảnh không tồn tại"
-                    },
-                    "500": {
-                        "description": "Lỗi hệ thống"
                     }
                 },
                 "security": [
@@ -2930,6 +2863,8 @@
                                         "description": "Ảnh riêng của biến thể",
                                         "type": "string",
                                         "format": "binary"
+                                        "type": "string",
+                                        "format": "binary"
                                     }
                                 },
                                 "type": "object"
@@ -3032,6 +2967,9 @@
                                         "description": "[TÙY CHỌN] Ảnh mới",
                                         "type": "string",
                                         "format": "binary"
+                                        "description": "[TÙY CHỌN] Ảnh mới",
+                                        "type": "string",
+                                        "format": "binary"
                                     }
                                 },
                                 "type": "object"
@@ -3084,8 +3022,11 @@
                     "200": {
                         "description": "Xóa thành công"
                     },
-                    "404": {
-                        "description": "Biến thể không tồn tại"
+                    "422": {
+                        "description": "Dữ liệu validation không hợp lệ"
+                    },
+                    "401": {
+                        "description": "Chưa xác thực"
                     }
                 },
                 "security": [
@@ -3975,6 +3916,10 @@
         {
             "name": "Product Variants",
             "description": "Product Variants"
+        },
+        {
+            "name": "Revenue Stats",
+            "description": "Revenue Stats"
         },
         {
             "name": "User Addresses",
