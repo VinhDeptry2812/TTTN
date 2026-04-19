@@ -407,6 +407,7 @@ class ProductController extends Controller
      *                 @OA\Property(property="name", type="string"),
      *                 @OA\Property(property="description", type="string"),
      *                 @OA\Property(property="base_price", type="number"),
+     *                 @OA\Property(property="sale_price", type="number", nullable=true),
      *                 @OA\Property(property="category_id", type="integer"),
      *                 @OA\Property(property="stock_quantity", type="integer"),
      *                 @OA\Property(property="image", type="string", format="binary", description="Ảnh đại diện mới"),

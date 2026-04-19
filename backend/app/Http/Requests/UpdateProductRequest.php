@@ -14,6 +14,15 @@ class UpdateProductRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        if ($this->input('sale_price') === 'null' || $this->input('sale_price') === '') {
+            $this->merge([
+                'sale_price' => null,
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         $productId = $this->route('id');
