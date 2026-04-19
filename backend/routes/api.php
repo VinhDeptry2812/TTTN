@@ -14,6 +14,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\ProductStatsController;
+use App\Http\Controllers\RevenueStatsController;
 
 
 Route::get('/products', [ProductController::class, 'index']);
@@ -124,6 +125,9 @@ Route::middleware('auth:admin-api')->group(function () {
         // Thống kê sản phẩm (Product Stats)
         Route::get('/admin/products/stats/by-price', [ProductStatsController::class, 'byPrice']);
         Route::get('/admin/products/stats/by-brand', [ProductStatsController::class, 'byBrand']);
+
+        // Thống kê doanh thu (Revenue Stats)
+        Route::get('/admin/revenue/stats', [RevenueStatsController::class, 'stats']);
 
     });
 
