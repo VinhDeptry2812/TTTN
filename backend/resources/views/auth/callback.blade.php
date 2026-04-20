@@ -66,29 +66,31 @@
             }
         }
 
-        // 3. Đóng popup sau một khoảng thời gian ngắn
-        document.getElementById('status').innerText = messageSent
-            ? "Đăng nhập thành công! Đang quay lại trang chính..."
-            : "Đang bộ hóa dữ liệu... vui lòng đợi.";
-
-        setTimeout(() => {
-            window.close();
-            // Nếu sau 1s không tự đóng (do trình duyệt chặn), thì mới redirect
+        // 3. Đoán xem gọi từ popup hay trực tiếp
+        if (messageSent) {
+            document.getElementById('status').innerText = "Đăng nhập thành công! Đang quay lại trang chính...";
             setTimeout(() => {
-                if (!window.closed) {
-                    fallbackRedirect();
-                }
-            }, 1000);
-        }, 500);
+                window.close();
+                // Nếu sau 1s không tự đóng (do trình duyệt chặn), thì mới redirect
+                setTimeout(() => {
+                    if (!window.closed) {
+                        fallbackRedirect();
+                    }
+                }, 1000);
+            }, 500);
+        } else {
+            document.getElementById('status').innerText = "Đang đồng bộ hóa dữ liệu... vui lòng đợi.";
+            fallbackRedirect();
+        }
     }
 
     function fallbackRedirect() {
         const token = data.token;
-        const frontendUrl = "{{ config('app.frontend_url') }}";
+        const frontendUrl = "{!! $frontendUrl ?? config('app.frontend_url', 'https://tttn-2.onrender.com') !!}";
         if (token) {
-            window.location.href = frontendUrl + "/?token=" + token;
+            window.location.href = frontendUrl.replace(/\/$/, '') + "/?token=" + token;
         } else {
-            window.location.href = frontendUrl + "/?error=google_failed";
+            window.location.href = frontendUrl.replace(/\/$/, '') + "/?error=google_failed";
         }
     }
 

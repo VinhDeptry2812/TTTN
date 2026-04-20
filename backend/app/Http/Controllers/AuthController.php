@@ -334,9 +334,6 @@ class AuthController extends Controller
      *     )
      * )
      */
-    // ========================
-    // QUÊN MẬT KHẨU - gửi mail
-    // ========================
     public function forgotPassword(ForgotPasswordRequest $request)
     {
         // Tạo token ngẫu nhiên
@@ -569,20 +566,23 @@ class AuthController extends Controller
             $token = Auth::login($user);
 
             // Redirect về Frontend kèm Token
-            $frontendUrl = env('FRONTEND_URL', 'https://lt-createwebfunitureluxury.onrender.com');
+            $frontendUrl = env('FRONTEND_URL', 'https://tttn-2.onrender.com');
             // Thay vì redirect toàn trang, trả về view để gửi message tới trang mẹ
             return response()
                 ->view('auth.callback', [
                     'token' => $token,
-                    'user' => $user
+                    'user' => $user,
+                    'frontendUrl' => $frontendUrl
                 ])
                 ->header('Content-Type', 'text/html');
 
         } catch (\Exception $e) {
             \Log::error('Google Login Error: ' . $e->getMessage());
+            $frontendUrl = env('FRONTEND_URL', 'https://tttn-2.onrender.com');
             return response()
                 ->view('auth.callback', [
-                    'error' => 'google_failed'
+                    'error' => 'google_failed',
+                    'frontendUrl' => $frontendUrl
                 ])
                 ->header('Content-Type', 'text/html');
         }

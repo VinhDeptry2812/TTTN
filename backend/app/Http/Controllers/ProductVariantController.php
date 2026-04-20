@@ -7,6 +7,7 @@ use App\Models\ProductVariant;
 use App\Http\Requests\StoreProductVariantRequest;
 use App\Http\Requests\UpdateProductVariantRequest;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 
@@ -185,7 +186,7 @@ class ProductVariantController extends Controller
 
         if ($request->hasFile('image')) {
             if ($oldUrl = $variant->getRawOriginal('image_url')) {
-                if (\Illuminate\Support\Str::contains($oldUrl, 'res.cloudinary.com')) {
+                if (Str::contains($oldUrl, 'res.cloudinary.com')) {
                     $parts = explode('/upload/', $oldUrl);
                     if (isset($parts[1])) {
                         $path = preg_replace('/^v\d+\//', '', $parts[1]); 
@@ -245,7 +246,7 @@ class ProductVariantController extends Controller
 
         // Xóa ảnh của biến thể nếu có
         if ($oldUrl = $variant->getRawOriginal('image_url')) {
-            if (\Illuminate\Support\Str::contains($oldUrl, 'res.cloudinary.com')) {
+            if (Str::contains($oldUrl, 'res.cloudinary.com')) {
                 $parts = explode('/upload/', $oldUrl);
                 if (isset($parts[1])) {
                     $path = preg_replace('/^v\d+\//', '', $parts[1]); 

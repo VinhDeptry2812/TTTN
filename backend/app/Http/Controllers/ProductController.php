@@ -439,7 +439,7 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             // Delete old primary image correctly using raw path
             if ($oldUrl = $product->getRawOriginal('image_url')) {
-                if (\Illuminate\Support\Str::contains($oldUrl, 'res.cloudinary.com')) {
+                if (Str::contains($oldUrl, 'res.cloudinary.com')) {
                     $parts = explode('/upload/', $oldUrl);
                     if (isset($parts[1])) {
                         $path = preg_replace('/^v\d+\//', '', $parts[1]); 
@@ -471,7 +471,7 @@ class ProductController extends Controller
             // Replace all existing gallery images
             foreach ($product->images as $oldImage) {
                 if ($oldUrl = $oldImage->getRawOriginal('image_url')) {
-                    if (\Illuminate\Support\Str::contains($oldUrl, 'res.cloudinary.com')) {
+                    if (Str::contains($oldUrl, 'res.cloudinary.com')) {
                         $parts = explode('/upload/', $oldUrl);
                         if (isset($parts[1])) {
                             $path = preg_replace('/^v\d+\//', '', $parts[1]); 
